@@ -1,0 +1,1 @@
+# jellyfin2popfeed-plugin
