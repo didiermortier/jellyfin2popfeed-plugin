@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="20" fill="#1a1a2e"/>
+  <circle cx="100" cy="100" r="60" fill="#00a4dc"/>
+  <path d="M70 80 L70 120 L130 100 Z" fill="#fff"/>
+  <text x="100" y="180" text-anchor="middle" fill="#fff" font-size="14" font-family="Arial">PopFeed</text>
+</svg>
