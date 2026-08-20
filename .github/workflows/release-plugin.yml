@@ -1,0 +1,49 @@
+name: Release Plugin
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 9.0.x
+    
+    - name: Add Jellyfin NuGet source
+      run: dotnet nuget add source https://repo.jellyfin.org/nuget/ --name jellyfin
+    
+    - name: Restore dependencies
+      run: dotnet restore Jellyfin.Plugin.Jellyfin2PopFeed/Jellyfin.Plugin.Jellyfin2PopFeed.csproj
+    
+    - name: Build
+      run: dotnet build Jellyfin.Plugin.Jellyfin2PopFeed/Jellyfin.Plugin.Jellyfin2PopFeed.csproj --configuration Release --no-restore --output ./artifacts
+    
+    - name: Create plugin directory structure
+      run: |
+        mkdir -p release/Jellyfin2PopFeed
+        cp artifacts/Jellyfin.Plugin.Jellyfin2PopFeed.dll release/Jellyfin2PopFeed/
+        cp icon.svg release/Jellyfin2PopFeed/
+    
+    - name: Create ZIP
+      run: |
+        cd release
+        zip -r Jellyfin2PopFeed.zip Jellyfin2PopFeed/
+        cd ..
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: release/Jellyfin2PopFeed.zip
+        generate_release_notes: true
+        tag_name: ${{ github.ref_name }}
+        name: Release ${{ github.ref_name }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
