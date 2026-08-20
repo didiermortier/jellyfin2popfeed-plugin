@@ -88,10 +88,10 @@ public class AtProtocolService : IAtProtocolService
         }
 
         // Build the record with proper PopFeed collection
-        var record = new
+        var record = new Dictionary<string, object>
         {
-            $type = "social.popfeed.feed.note",
-            createdAt = DateTime.UtcNow.ToString("o")
+            ["$type"] = "social.popfeed.feed.note",
+            ["createdAt"] = DateTime.UtcNow.ToString("o")
         };
 
         // Merge with the provided noteRecord
