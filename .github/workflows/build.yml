@@ -1,0 +1,32 @@
+name: Build Plugin
+
+on:
+  push:
+    branches: [ main, vibe/** ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 9.0.x
+    
+    - name: Restore dependencies
+      run: dotnet restore Jellyfin.Plugin.Jellyfin2PopFeed/Jellyfin.Plugin.Jellyfin2PopFeed.csproj
+    
+    - name: Build
+      run: dotnet build Jellyfin.Plugin.Jellyfin2PopFeed/Jellyfin.Plugin.Jellyfin2PopFeed.csproj --configuration Release --no-restore
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: Jellyfin.Plugin.Jellyfin2PopFeed
+        path: Jellyfin.Plugin.Jellyfin2PopFeed/bin/Release/net9.0/*
+        if-no-files-found: error
