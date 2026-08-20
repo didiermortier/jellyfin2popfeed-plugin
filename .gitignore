@@ -1,0 +1,18 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+
+# Git
+.git/
+
+# VS Code
+.vscode/
+
+# IDE
+*.userosscache
+*.sln.docstates
+
+# Jellyfin
+plugins/\nconfig/

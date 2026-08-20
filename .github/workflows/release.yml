@@ -1,0 +1,51 @@
+name: Release Plugin
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 9.0.x
+    
+    - name: Restore dependencies
+      run: dotnet restore Jellyfin.Plugin.Jellyfin2PopFeed/Jellyfin.Plugin.Jellyfin2PopFeed.csproj
+    
+    - name: Build
+      run: dotnet build Jellyfin.Plugin.Jellyfin2PopFeed/Jellyfin.Plugin.Jellyfin2PopFeed.csproj --configuration Release --no-restore --output ./artifacts
+    
+    - name: Rename DLL for release
+      run: |
+        mv ./artifacts/Jellyfin.Plugin.Jellyfin2PopFeed.dll ./artifacts/Jellyfin.Plugin.Jellyfin2PopFeed-v1.0.0.dll
+        cp ./artifacts/Jellyfin.Plugin.Jellyfin2PopFeed-v1.0.0.dll ./Jellyfin.Plugin.Jellyfin2PopFeed.dll
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          ./Jellyfin.Plugin.Jellyfin2PopFeed.dll
+          ./artifacts/Jellyfin.Plugin.Jellyfin2PopFeed-v1.0.0.dll
+        generate_release_notes: true
+        tag_name: ${{ github.ref_name }}
+        name: Release ${{ github.ref_name }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Upload to release (latest)
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./Jellyfin.Plugin.Jellyfin2PopFeed.dll
+        asset_name: Jellyfin.Plugin.Jellyfin2PopFeed.dll
+        asset_content_type: application/octet-stream
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

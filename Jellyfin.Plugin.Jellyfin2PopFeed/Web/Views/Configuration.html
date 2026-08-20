@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jellyfin2 PopFeed Configuration</title>
+    <link rel="stylesheet" href="../../../css/dashboard.css">
+    <style>
+        .popfeed-config {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #2a2a2a;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        .popfeed-config h1 {
+            color: #fff;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .popfeed-config .form-group {
+            margin-bottom: 20px;
+        }
+        .popfeed-config label {
+            display: block;
+            color: #ccc;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .popfeed-config input[type="text"],
+        .popfeed-config input[type="password"],
+        .popfeed-config input[type="checkbox"] {
+            width: 100%;
+            padding: 10px;
+            background: #3a3a3a;
+            border: 1px solid #555;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .popfeed-config input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+        }
+        .popfeed-config button {
+            padding: 12px 24px;
+            background: #00a4dc;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            margin-right: 10px;
+            transition: background 0.2s;
+        }
+        .popfeed-config button:hover {
+            background: #0088bb;
+        }
+        .popfeed-config button.secondary {
+            background: #555;
+        }
+        .popfeed-config button.secondary:hover {
+            background: #444;
+        }
+        .popfeed-config button.danger {
+            background: #e54949;
+        }
+        .popfeed-config button.danger:hover {
+            background: #c43939;
+        }
+        .popfeed-config .status {
+            margin: 20px 0;
+            padding: 12px;
+            border-radius: 4px;
+            display: none;
+        }
+        .popfeed-config .status.success {
+            background: #2a5c44;
+            color: #8fe08f;
+            display: block;
+        }
+        .popfeed-config .status.error {
+            background: #5c2a2a;
+            color: #e08f8f;
+            display: block;
+        }
+        .popfeed-config .auth-section {
+            border: 1px solid #444;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .popfeed-config .auth-section legend {
+            color: #ccc;
+            padding: 0 5px;
+        }
+        .popfeed-config .connection-status {
+            display: inline-block;
+            margin-left: 10px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .popfeed-config .connection-status.connected {
+            background: #2a5c44;
+            color: #8fe08f;
+        }
+        .popfeed-config .connection-status.disconnected {
+            background: #5c2a2a;
+            color: #e08f8f;
+        }
+        .popfeed-config .checkbox-group {
+            display: flex;
+            align-items: center;
+        }
+        .popfeed-config .checkbox-group label {
+            margin-bottom: 0;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="popfeed-config">
+        <h1>Jellyfin2 PopFeed Configuration</h1>
+        
+        <!-- Connection Status -->
+        <div class="form-group">
+            <label>Connection Status</label>
+            <div>
+                <span id="connectionStatus" class="connection-status disconnected">Disconnected</span>
+            </div>
+        </div>
+
+        <!-- Authentication Section -->
+        <fieldset class="auth-section" id="authSection">
+            <legend>AT Protocol Authentication</legend>
+            
+            <div class="form-group">
+                <label for="pdsHost">PDS Host</label>
+                <input type="text" id="pdsHost" name="pdsHost" placeholder="popfeed.social" value="popfeed.social">
+            </div>
+
+            <div class="form-group">
+                <label for="handle">Handle (e.g., username.popfeed.social)</label>
+                <input type="text" id="handle" name="handle" placeholder="@username.popfeed.social">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Your AT Protocol password">
+            </div>
+
+            <div class="form-group">
+                <button onclick="authenticate()">Connect to PopFeed</button>
+                <button onclick="disconnect()" class="secondary danger" id="disconnectBtn" style="display: none;">Disconnect</button>
+            </div>
+        </fieldset>
+
+        <!-- Settings Section -->
+        <fieldset class="auth-section" id="settingsSection" style="display: none;">
+            <legend>Settings</legend>
+
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="autoPostMovies" name="autoPostMovies" checked>
+                <label for="autoPostMovies">Automatically post watched movies to PopFeed</label>
+            </div>
+
+            <div class="form-group">
+                <button onclick="saveConfiguration()">Save Settings</button>
+            </div>
+        </fieldset>
+
+        <!-- Status Messages -->
+        <div id="successStatus" class="status success"></div>
+        <div id="errorStatus" class="status error"></div>
+    </div>
+
+    <script>
+        // Global state
+        let currentUserId = '';
+        let currentSettings = {};
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConfiguration();
+        });
+
+        // Load configuration from server
+        function loadConfiguration() {
+            fetch(window.location.pathname)
+                .then(response => response.text())
+                .then(html => {
+                    // Parse the HTML to extract the model data
+                    // In Jellyfin, the view is rendered server-side, so we need to handle this differently
+                    // For now, we'll use a simple approach
+                    
+                    // Actually, we should use the API endpoint
+                    return fetch(window.location.pathname + '/GetConfiguration');
+                })
+                .catch(() => fetch(window.location.pathname + '/GetConfiguration'))
+                .then(response => response.json())
+                .then(data => {
+                    currentUserId = data.userId || '';
+                    currentSettings = data;
+                    
+                    // Update UI based on settings
+                    updateUI();
+                })
+                .catch(error => {
+                    showError('Failed to load configuration: ' + error.message);
+                });
+        }
+
+        // Update UI based on current settings
+        function updateUI() {
+            // Update connection status
+            const connectionStatus = document.getElementById('connectionStatus');
+            const authSection = document.getElementById('authSection');
+            const settingsSection = document.getElementById('settingsSection');
+            const disconnectBtn = document.getElementById('disconnectBtn');
+
+            if (currentSettings.isConnected) {
+                connectionStatus.textContent = 'Connected';
+                connectionStatus.className = 'connection-status connected';
+                authSection.style.display = 'none';
+                settingsSection.style.display = 'block';
+                disconnectBtn.style.display = 'inline-block';
+            } else {
+                connectionStatus.textContent = 'Disconnected';
+                connectionStatus.className = 'connection-status disconnected';
+                authSection.style.display = 'block';
+                settingsSection.style.display = 'none';
+                disconnectBtn.style.display = 'none';
+            }
+
+            // Update form fields
+            document.getElementById('pdsHost').value = currentSettings.atProtocolPdsHost || 'popfeed.social';
+            document.getElementById('handle').value = currentSettings.atProtocolHandle || '';
+            document.getElementById('autoPostMovies').checked = currentSettings.autoPostMovies !== false;
+        }
+
+        // Authenticate with AT Protocol
+        function authenticate() {
+            const handle = document.getElementById('handle').value;
+            const password = document.getElementById('password').value;
+            const pdsHost = document.getElementById('pdsHost').value;
+
+            if (!handle || !password) {
+                showError('Please enter both handle and password');
+                return;
+            }
+
+            hideMessages();
+
+            fetch(window.location.pathname + '/Authenticate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    handle: handle,
+                    password: password,
+                    pdsHost: pdsHost
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccess('Authentication successful! Connected as ' + data.handle);
+                    // Reload configuration
+                    setTimeout(loadConfiguration, 1000);
+                } else {
+                    showError(data.error || 'Authentication failed');
+                }
+            })
+            .catch(error => {
+                showError('Authentication error: ' + error.message);
+            });
+        }
+
+        // Disconnect from PopFeed
+        function disconnect() {
+            if (!confirm('Are you sure you want to disconnect from PopFeed?')) {
+                return;
+            }
+
+            hideMessages();
+
+            fetch(window.location.pathname + '/Disconnect', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccess('Disconnected from PopFeed');
+                    // Update UI
+                    currentSettings.isConnected = false;
+                    currentSettings.atProtocolHandle = '';
+                    currentSettings.atProtocolAccessToken = '';
+                    updateUI();
+                } else {
+                    showError(data.error || 'Failed to disconnect');
+                }
+            })
+            .catch(error => {
+                showError('Error disconnecting: ' + error.message);
+            });
+        }
+
+        // Save configuration
+        function saveConfiguration() {
+            const autoPostMovies = document.getElementById('autoPostMovies').checked;
+
+            hideMessages();
+
+            fetch(window.location.pathname + '/SaveConfiguration', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: currentUserId,
+                    atProtocolHandle: currentSettings.atProtocolHandle,
+                    atProtocolPdsHost: document.getElementById('pdsHost').value,
+                    atProtocolAccessToken: currentSettings.atProtocolAccessToken,
+                    isConnected: currentSettings.isConnected,
+                    autoPostMovies: autoPostMovies
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccess('Configuration saved successfully');
+                    // Update settings
+                    currentSettings.autoPostMovies = autoPostMovies;
+                    currentSettings.atProtocolPdsHost = document.getElementById('pdsHost').value;
+                } else {
+                    showError(data.error || 'Failed to save configuration');
+                }
+            })
+            .catch(error => {
+                showError('Error saving configuration: ' + error.message);
+            });
+        }
+
+        // Test connection
+        function testConnection() {
+            hideMessages();
+
+            fetch(window.location.pathname + '/TestConnection')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showSuccess('Connection test successful');
+                    } else {
+                        showError(data.error || 'Connection test failed');
+                    }
+                })
+                .catch(error => {
+                    showError('Connection test error: ' + error.message);
+                });
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            hideMessages();
+            const successDiv = document.getElementById('successStatus');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(hideMessages, 5000);
+        }
+
+        // Show error message
+        function showError(message) {
+            hideMessages();
+            const errorDiv = document.getElementById('errorStatus');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // Hide all messages
+        function hideMessages() {
+            document.getElementById('successStatus').style.display = 'none';
+            document.getElementById('errorStatus').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
