@@ -1,16 +1,22 @@
 [
-  {
-    "name": "Jellyfin2 PopFeed",
-    "guid": "5f3e8a1c-2b7d-4e9f-a6c3-d1e4f8a2b9c5",
-    "version": "1.0.0",
-    "targetAbi": "10.11.0.0",
-    "description": "Automatically post watched movies to PopFeed via AT Protocol",
-    "category": "Social",
-    "overview": "A Jellyfin plugin that automatically posts your watched movies to PopFeed using the AT Protocol. Features include per-user authentication, auto-posting on movie completion, and deduplication to prevent double-posting.",
-    "imageUrl": "https://raw.githubusercontent.com/didiermortier/jellyfin2popfeed-plugin/main/icon.svg",
-    "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin",
-    "changelogUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases",
-    "downloadUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/latest/download/Jellyfin.Plugin.Jellyfin2PopFeed.dll",
-    "timestamp": 1724180000
-  }
+    {
+        "guid": "5f3e8a1c-2b7d-4e9f-a6c3-d1e4f8a2b9c5",
+        "name": "Jellyfin2 PopFeed",
+        "description": "Automatically post watched movies to PopFeed via AT Protocol",
+        "overview": "A Jellyfin plugin that automatically posts your watched movies to PopFeed using the AT Protocol. Features include per-user authentication, auto-posting on movie completion, and deduplication to prevent double-posting.",
+        "owner": "didiermortier",
+        "category": "Social",
+        "imageUrl": "https://raw.githubusercontent.com/didiermortier/jellyfin2popfeed-plugin/main/icon.svg",
+        "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin",
+        "versions": [
+            {
+                "version": "1.0.0",
+                "changelog": "Initial release - Movies auto-posting to PopFeed via AT Protocol",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.0/Jellyfin2PopFeed.zip",
+                "checksum": "PLACEHOLDER_CHECKSUM_WILL_BE_UPDATED",
+                "timestamp": "2026-08-20T21:00:00Z"
+            }
+        ]
+    }
 ]

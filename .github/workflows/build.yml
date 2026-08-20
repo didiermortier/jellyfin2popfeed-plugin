@@ -2,7 +2,7 @@ name: Build Plugin
 
 on:
   push:
-    branches: [ main, vibe/** ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -13,20 +13,16 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: 9.0.x
-    
-    - name: Restore dependencies
-      run: dotnet restore Jellyfin.Plugin.Jellyfin2PopFeed/Jellyfin.Plugin.Jellyfin2PopFeed.csproj
-    
-    - name: Build
-      run: dotnet build Jellyfin.Plugin.Jellyfin2PopFeed/Jellyfin.Plugin.Jellyfin2PopFeed.csproj --configuration Release --no-restore
+    - name: Build with Jellyfin Docker
+      run: |
+        docker run --rm -v ${PWD}:/build -w /build ghcr.io/linuxserver/jellyfin:latest \
+        bash -c "apt-get update && apt-get install -y dotnet-sdk-9.0 && \
+        cd /build/Jellyfin.Plugin.Jellyfin2PopFeed && \
+        dotnet restore Jellyfin.Plugin.Jellyfin2PopFeed.csproj && \
+        dotnet build Jellyfin.Plugin.Jellyfin2PopFeed.csproj --configuration Release --no-restore"
     
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
         name: Jellyfin.Plugin.Jellyfin2PopFeed
-        path: Jellyfin.Plugin.Jellyfin2PopFeed/bin/Release/net9.0/*
-        if-no-files-found: error
+        path: Jellyfin.Plugin.Jellyfin2PopFeed/bin/Release/net9.0/Jellyfin.Plugin.Jellyfin2PopFeed.dll

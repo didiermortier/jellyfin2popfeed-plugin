@@ -1,0 +1,51 @@
+name: Build and Release Plugin
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    # Use Jellyfin's official Docker image for building
+    # This ensures we have the correct .NET runtime version
+    - name: Build plugin
+      run: |
+        docker run --rm -v ${PWD}:/build -w /build ghcr.io/linuxserver/jellyfin:latest \
+        bash -c "apt-get update && apt-get install -y dotnet-sdk-9.0 && \
+        cd /build/Jellyfin.Plugin.Jellyfin2PopFeed && \
+        dotnet restore Jellyfin.Plugin.Jellyfin2PopFeed.csproj && \
+        dotnet build Jellyfin.Plugin.Jellyfin2PopFeed.csproj --configuration Release --no-restore && \
+        mkdir -p /build/output && \
+        cp bin/Release/net9.0/Jellyfin.Plugin.Jellyfin2PopFeed.dll /build/output/"
+    
+    - name: Create ZIP file
+      run: |
+        mkdir -p release
+        cp output/Jellyfin.Plugin.Jellyfin2PopFeed.dll release/
+        cd release
+        zip Jellyfin2PopFeed.zip Jellyfin.Plugin.Jellyfin2PopFeed.dll
+        cd ..
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: release/Jellyfin2PopFeed.zip
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Upload to release
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: release/Jellyfin2PopFeed.zip
+        asset_name: Jellyfin2PopFeed.zip
+        asset_content_type: application/zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

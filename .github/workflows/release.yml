@@ -17,35 +17,26 @@ jobs:
       with:
         dotnet-version: 9.0.x
     
+    - name: Add Jellyfin NuGet source
+      run: dotnet nuget add source https://repo.jellyfin.org/nuget/ --name jellyfin
+    
     - name: Restore dependencies
       run: dotnet restore Jellyfin.Plugin.Jellyfin2PopFeed/Jellyfin.Plugin.Jellyfin2PopFeed.csproj
     
     - name: Build
       run: dotnet build Jellyfin.Plugin.Jellyfin2PopFeed/Jellyfin.Plugin.Jellyfin2PopFeed.csproj --configuration Release --no-restore --output ./artifacts
     
-    - name: Rename DLL for release
+    - name: Create ZIP
       run: |
-        mv ./artifacts/Jellyfin.Plugin.Jellyfin2PopFeed.dll ./artifacts/Jellyfin.Plugin.Jellyfin2PopFeed-v1.0.0.dll
-        cp ./artifacts/Jellyfin.Plugin.Jellyfin2PopFeed-v1.0.0.dll ./Jellyfin.Plugin.Jellyfin2PopFeed.dll
+        mkdir -p release
+        cd artifacts
+        zip ../release/Jellyfin2PopFeed.zip Jellyfin.Plugin.Jellyfin2PopFeed.dll
+        cd ..
     
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
-        files: |
-          ./Jellyfin.Plugin.Jellyfin2PopFeed.dll
-          ./artifacts/Jellyfin.Plugin.Jellyfin2PopFeed-v1.0.0.dll
+        files: release/Jellyfin2PopFeed.zip
         generate_release_notes: true
-        tag_name: ${{ github.ref_name }}
-        name: Release ${{ github.ref_name }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Upload to release (latest)
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./Jellyfin.Plugin.Jellyfin2PopFeed.dll
-        asset_name: Jellyfin.Plugin.Jellyfin2PopFeed.dll
-        asset_content_type: application/octet-stream
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
