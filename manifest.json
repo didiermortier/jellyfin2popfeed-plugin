@@ -8,11 +8,11 @@
         "category": "General",
         "versions": [
             {
-                "version": "1.0.1.0",
-                "changelog": "Complete rewrite. Fixed all build errors, enriched PopFeed posts with metadata (TMDb ID, genres, release date), proper Jellyfin 10.11.x API usage.",
+                "version": "1.0.2.0",
+                "changelog": "Fixed startup crash. Added missing NuGet dependencies (Microsoft.Extensions.Http, Microsoft.AspNetCore.App). Rewrote config page as Jellyfin dashboard UI fragment with proper form lifecycle.",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.1/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
-                "checksum": "80f39c8cbe7ee2f417d300ae92710bec",
+                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.2/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
+                "checksum": "e66628fccbaafb8d9ee6cfd9052471f2",
                 "timestamp": "2026-08-21T18:30:00Z"
             }
         ]
