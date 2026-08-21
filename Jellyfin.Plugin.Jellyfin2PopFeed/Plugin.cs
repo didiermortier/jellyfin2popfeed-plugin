@@ -9,7 +9,7 @@ using Jellyfin.Plugin.Jellyfin2PopFeed.Configuration;
 namespace Jellyfin.Plugin.Jellyfin2PopFeed;
 
 /// <summary>
-/// Main plugin class for Jellyfin2 PopFeed integration.
+/// Main plugin class for Jellyfin2PopFeed integration.
 /// Posts watched movies to PopFeed via AT Protocol.
 /// </summary>
 public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
@@ -20,27 +20,14 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
         Instance = this;
     }
 
-    /// <summary>
-    /// Singleton instance of the plugin.
-    /// </summary>
     public static Plugin? Instance { get; private set; }
 
-    /// <summary>
-    /// Plugin name displayed in Jellyfin dashboard.
-    /// </summary>
-    public override string Name => "Jellyfin2 PopFeed";
+    public override string Name => "Jellyfin2PopFeed";
 
-    /// <summary>
-    /// Unique plugin identifier.
-    /// </summary>
     public override Guid Id => Guid.Parse("5f3e8a1c-2b7d-4e9f-a6c3-d1e4f8a2b9c5");
 
-    /// <summary>
-    /// Plugin description.
-    /// </summary>
     public override string Description => "Automatically post watched movies to PopFeed via AT Protocol";
 
-    /// <inheritdoc />
     public IEnumerable<PluginPageInfo> GetPages()
     {
         return new[]

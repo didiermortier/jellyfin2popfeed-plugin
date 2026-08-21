@@ -18,8 +18,25 @@ public class PopFeedController : ControllerBase
     }
 
     /// <summary>
+    /// Returns current config state. Used by UI instead of the generic PluginController
+    /// to avoid serialization issues with BasePluginConfiguration properties.
+    /// </summary>
+    [HttpGet("Status")]
+    public ActionResult<object> GetStatus()
+    {
+        var cfg = Plugin.Instance!.Configuration;
+        return Ok(new
+        {
+            connected = !string.IsNullOrEmpty(cfg.AtProtocolAccessToken),
+            handle = cfg.AtProtocolHandle ?? string.Empty,
+            pdsHost = cfg.AtProtocolPdsHost ?? "popfeed.social",
+            autoPostMovies = cfg.AutoPostMovies
+        });
+    }
+
+    /// <summary>
     /// Authenticate against AT Protocol and save everything in one call.
-    /// Returns the config state (without password) for the UI.
+    /// Validates that the authenticated handle matches what was requested.
     /// </summary>
     [HttpPost("Authenticate")]
     public async Task<ActionResult<object>> Authenticate([FromBody] AuthRequest request)
@@ -28,88 +45,84 @@ public class PopFeedController : ControllerBase
             request.Handle, request.Password, request.PdsHost);
 
         if (authResult == null)
-            return BadRequest(new { message = "Authentication failed. Check your handle and password." });
+            return BadRequest(new { message = "Authentication failed. Check your handle, password, and PDS host." });
 
-        // Save EVERYTHING in one shot - handle, password, tokens, host, options
-        var config = Plugin.Instance!.Configuration;
-        config.AtProtocolHandle = authResult.Handle ?? request.Handle;
-        config.AtProtocolDid = authResult.Did;
-        config.AtProtocolAccessToken = authResult.AccessToken;
-        config.AtProtocolRefreshToken = authResult.RefreshToken;
-        config.AtProtocolPdsHost = request.PdsHost;
-        config.AtProtocolPassword = request.Password;
-        config.AutoPostMovies = request.AutoPostMovies;
-        Plugin.Instance!.UpdateConfiguration(config);
+        // Save EVERYTHING in one shot via server-side UpdateConfiguration
+        var cfg = Plugin.Instance!.Configuration;
+        cfg.AtProtocolHandle = authResult.Handle ?? request.Handle;
+        cfg.AtProtocolDid = authResult.Did;
+        cfg.AtProtocolAccessToken = authResult.AccessToken;
+        cfg.AtProtocolRefreshToken = authResult.RefreshToken;
+        cfg.AtProtocolPdsHost = request.PdsHost;
+        cfg.AtProtocolPassword = request.Password;
+        cfg.AutoPostMovies = request.AutoPostMovies;
+        Plugin.Instance!.UpdateConfiguration(cfg);
 
         return Ok(new
         {
             connected = true,
-            handle = config.AtProtocolHandle,
-            pdsHost = config.AtProtocolPdsHost,
-            did = config.AtProtocolDid,
-            autoPostMovies = config.AutoPostMovies
+            handle = cfg.AtProtocolHandle,
+            pdsHost = cfg.AtProtocolPdsHost,
+            did = cfg.AtProtocolDid,
+            autoPostMovies = cfg.AutoPostMovies
         });
     }
 
     /// <summary>
-    /// Save settings without touching tokens. Server-side merge prevents race conditions.
+    /// Save settings without touching tokens. Server-side merge.
     /// </summary>
     [HttpPost("Settings")]
     public ActionResult<object> SaveSettings([FromBody] SettingsRequest request)
     {
-        var config = Plugin.Instance!.Configuration;
+        var cfg = Plugin.Instance!.Configuration;
 
-        // Only update fields the user explicitly sent
         if (!string.IsNullOrEmpty(request.Handle))
-            config.AtProtocolHandle = request.Handle;
+            cfg.AtProtocolHandle = request.Handle;
         if (!string.IsNullOrEmpty(request.Password))
-            config.AtProtocolPassword = request.Password;
+            cfg.AtProtocolPassword = request.Password;
         if (!string.IsNullOrEmpty(request.PdsHost))
-            config.AtProtocolPdsHost = request.PdsHost;
-        config.AutoPostMovies = request.AutoPostMovies;
+            cfg.AtProtocolPdsHost = request.PdsHost;
+        cfg.AutoPostMovies = request.AutoPostMovies;
 
-        // Preserve existing tokens if they exist
-        // (tokens are never sent from the UI, only from Authenticate/Disconnect)
-
-        Plugin.Instance!.UpdateConfiguration(config);
+        Plugin.Instance!.UpdateConfiguration(cfg);
 
         return Ok(new
         {
-            connected = !string.IsNullOrEmpty(config.AtProtocolAccessToken),
-            handle = config.AtProtocolHandle,
-            pdsHost = config.AtProtocolPdsHost,
-            autoPostMovies = config.AutoPostMovies
+            connected = !string.IsNullOrEmpty(cfg.AtProtocolAccessToken),
+            handle = cfg.AtProtocolHandle,
+            pdsHost = cfg.AtProtocolPdsHost,
+            autoPostMovies = cfg.AutoPostMovies
         });
     }
 
     /// <summary>
-    /// Disconnect: clear all auth tokens. Handle/password/host stay for easy re-auth.
+    /// Disconnect: clear auth tokens. Handle/password/host persist for re-auth.
     /// </summary>
     [HttpPost("Disconnect")]
     public ActionResult<object> Disconnect()
     {
-        var config = Plugin.Instance!.Configuration;
-        config.AtProtocolAccessToken = string.Empty;
-        config.AtProtocolRefreshToken = string.Empty;
-        config.AtProtocolDid = string.Empty;
-        Plugin.Instance!.UpdateConfiguration(config);
+        var cfg = Plugin.Instance!.Configuration;
+        cfg.AtProtocolAccessToken = string.Empty;
+        cfg.AtProtocolRefreshToken = string.Empty;
+        cfg.AtProtocolDid = string.Empty;
+        Plugin.Instance!.UpdateConfiguration(cfg);
 
         return Ok(new { connected = false });
     }
 
     /// <summary>
-    /// Test that the stored connection is still valid.
+    /// Test stored connection against the AT Protocol PDS.
     /// </summary>
     [HttpGet("TestConnection")]
     public async Task<ActionResult<object>> TestConnection()
     {
-        var config = Plugin.Instance!.Configuration;
-        var connected = await _atProtocolService.TestConnectionAsync(config);
+        var cfg = Plugin.Instance!.Configuration;
+        var connected = await _atProtocolService.TestConnectionAsync(cfg);
         return Ok(new
         {
             connected,
-            handle = connected ? config.AtProtocolHandle : null,
-            pdsHost = connected ? config.AtProtocolPdsHost : null
+            handle = connected ? cfg.AtProtocolHandle : null,
+            pdsHost = connected ? cfg.AtProtocolPdsHost : null
         });
     }
 }

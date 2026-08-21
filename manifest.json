@@ -1,7 +1,7 @@
 [
     {
         "guid": "5f3e8a1c-2b7d-4e9f-a6c3-d1e4f8a2b9c5",
-        "name": "Jellyfin2 PopFeed",
+        "name": "Jellyfin2PopFeed",
         "description": "Automatically post watched movies to PopFeed via AT Protocol. When you finish a movie on Jellyfin, it checks if it already exists on your PopFeed feed and posts it if it's new.",
         "overview": "Auto-post watched movies to PopFeed",
         "owner": "didiermortier",
@@ -9,19 +9,35 @@
         "versions": [
             {
                 "version": "1.0.2.0",
-                "changelog": "Initial working release.",
+                "changelog": "Initial working release - fixed startup crash, added NuGet deps, Jellyfin dashboard UI.",
                 "targetAbi": "10.11.0.0",
                 "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.2/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
                 "checksum": "e66628fccbaafb8d9ee6cfd9052471f2",
                 "timestamp": "2026-08-21T18:30:00Z"
             },
             {
+                "version": "1.0.3.0",
+                "changelog": "Config page fixes: save no longer overwrites tokens, test connection works, connection status persists on page refresh.",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.3/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
+                "checksum": "ca974650fb480d58ebab8c723de17657",
+                "timestamp": "2026-08-21T20:00:00Z"
+            },
+            {
                 "version": "1.0.4.0",
-                "changelog": "Complete config page rewrite. Single-trip API calls (no race conditions). Persistent connected badge with handle/pdsHost and Disconnect button. Server-side merge for Save Settings (preserves tokens). Leave password blank to keep existing.",
+                "changelog": "Single-trip API calls. New Settings endpoint with server-side merge. Persistent connected badge with Disconnect button.",
                 "targetAbi": "10.11.0.0",
                 "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.4/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
                 "checksum": "91cd574e86e6bbc1866a6bc7f1aa914a",
                 "timestamp": "2026-08-21T21:00:00Z"
+            },
+            {
+                "version": "1.0.5.0",
+                "changelog": "Fixed config persistence. loadConfig now fetches from our own GET Status endpoint (bypasses Jellyfin PluginController serialization). Renamed display name to Jellyfin2PopFeed (one word). Full version history preserved.",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.5/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
+                "checksum": "59f4217341fe3307ca5f9bff3da2bef6",
+                "timestamp": "2026-08-21T22:00:00Z"
             }
         ]
     }

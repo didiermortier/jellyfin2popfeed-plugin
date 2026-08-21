@@ -1,27 +1,22 @@
 const PopFeedConfig = {
-    pluginUniqueId: '5f3e8a1c-2b7d-4e9f-a6c3-d1e4f8a2b9c5',
-
-    // Load config and test connection on page show
+    // Loads config from our Status endpoint - bypasses PluginController serialization issues
     loadConfig: function (page) {
-        ApiClient.getPluginConfiguration(PopFeedConfig.pluginUniqueId).then(function (config) {
-            page.querySelector('#handle').value = config.atProtocolHandle || '';
-            page.querySelector('#pdsHost').value = config.atProtocolPdsHost || 'popfeed.social';
-            page.querySelector('#autoPost').checked = config.autoPostMovies !== false;
-
-            // Show connected badge if tokens exist
-            if (config.atProtocolAccessToken) {
-                PopFeedConfig.showConnected(page, config.atProtocolHandle, config.atProtocolPdsHost);
+        PopFeedConfig.apiGet('Status').then(function (result) {
+            page.querySelector('#handle').value = result.handle || '';
+            page.querySelector('#pdsHost').value = result.pdsHost || 'popfeed.social';
+            page.querySelector('#autoPost').checked = result.autoPostMovies !== false;
+            if (result.connected) {
+                PopFeedConfig.showConnected(page, result.handle, result.pdsHost);
             } else {
                 PopFeedConfig.showDisconnected(page);
             }
-
             Dashboard.hideLoadingMsg();
         }).catch(function () {
             Dashboard.hideLoadingMsg();
         });
     },
 
-    // Single call: authenticate and save everything
+    // Single trip: authenticate + save + tokens, all server-side
     authenticate: function (page) {
         const handle = page.querySelector('#handle').value;
         const password = page.querySelector('#password').value;
@@ -34,32 +29,24 @@ const PopFeedConfig = {
         }
 
         Dashboard.showLoadingMsg();
-        PopFeedConfig.apiPost(page, 'Authenticate', {
-            handle: handle,
-            password: password,
-            pdsHost: pdsHost,
-            autoPostMovies: autoPost
+        PopFeedConfig.apiPost('Authenticate', {
+            handle: handle, password: password, pdsHost: pdsHost, autoPostMovies: autoPost
         }).then(function (result) {
             PopFeedConfig.showMessage(page, 'Authenticated successfully! Settings saved.', 'success');
             PopFeedConfig.showConnected(page, result.handle, result.pdsHost);
-        }).catch(function () {
-            PopFeedConfig.showMessage(page, 'Authentication failed. Check credentials and PDS host.', 'error');
+        }).catch(function (err) {
+            PopFeedConfig.showMessage(page, err.message || 'Authentication failed.', 'error');
         });
     },
 
-    // Single call: save settings, server merges with existing tokens
+    // Single trip: save settings, server merges with stored tokens
     saveSettings: function (page) {
-        const handle = page.querySelector('#handle').value;
-        const password = page.querySelector('#password').value;
-        const pdsHost = page.querySelector('#pdsHost').value;
-        const autoPost = page.querySelector('#autoPost').checked;
-
         Dashboard.showLoadingMsg();
-        PopFeedConfig.apiPost(page, 'Settings', {
-            handle: handle,
-            password: password,
-            pdsHost: pdsHost,
-            autoPostMovies: autoPost
+        PopFeedConfig.apiPost('Settings', {
+            handle: page.querySelector('#handle').value,
+            password: page.querySelector('#password').value,
+            pdsHost: page.querySelector('#pdsHost').value,
+            autoPostMovies: page.querySelector('#autoPost').checked
         }).then(function (result) {
             PopFeedConfig.showMessage(page, 'Settings saved!', 'success');
             if (result.connected) {
@@ -67,14 +54,14 @@ const PopFeedConfig = {
             } else {
                 PopFeedConfig.showDisconnected(page);
             }
-        }).catch(function () {
-            PopFeedConfig.showMessage(page, 'Failed to save settings.', 'error');
+        }).catch(function (err) {
+            PopFeedConfig.showMessage(page, err.message || 'Failed to save settings.', 'error');
         });
     },
 
-    // Single call: test connection
+    // Test connection via server (reads stored tokens)
     testConnection: function (page) {
-        PopFeedConfig.apiGet(page, 'TestConnection').then(function (result) {
+        PopFeedConfig.apiGet('TestConnection').then(function (result) {
             if (result.connected) {
                 PopFeedConfig.showMessage(page, 'Connection is working!', 'success');
                 PopFeedConfig.showConnected(page, result.handle, result.pdsHost);
@@ -82,16 +69,16 @@ const PopFeedConfig = {
                 PopFeedConfig.showMessage(page, 'Not connected. Please authenticate first.', 'warning');
             }
         }).catch(function () {
-            PopFeedConfig.showMessage(page, 'Test failed. Is the Jellyfin server running?', 'error');
+            PopFeedConfig.showMessage(page, 'Test failed.', 'error');
         });
     },
 
-    // Single call: disconnect (clear tokens)
+    // Disconnect: clear tokens on server, keep handle/password/host for re-auth
     disconnect: function (page) {
         Dashboard.showLoadingMsg();
-        PopFeedConfig.apiPost(page, 'Disconnect', {}).then(function () {
+        PopFeedConfig.apiPost('Disconnect', {}).then(function () {
             PopFeedConfig.showDisconnected(page);
-            PopFeedConfig.showMessage(page, 'Disconnected. Your handle and host are saved for easy re-auth.', 'success');
+            PopFeedConfig.showMessage(page, 'Disconnected. Handle and host are saved for easy re-auth.', 'success');
         }).catch(function () {
             PopFeedConfig.showMessage(page, 'Failed to disconnect.', 'error');
         });
@@ -112,22 +99,20 @@ const PopFeedConfig = {
 
     showMessage: function (page, message, type) {
         const msgDiv = page.querySelector('#statusMessage');
-        msgDiv.classList.remove('hide');
-        msgDiv.classList.remove('alert-success', 'alert-error', 'alert-warning');
+        msgDiv.classList.remove('hide', 'alert-success', 'alert-error', 'alert-warning');
         if (type === 'success') msgDiv.classList.add('alert-success');
         else if (type === 'error') msgDiv.classList.add('alert-error');
         else if (type === 'warning') msgDiv.classList.add('alert-warning');
         msgDiv.innerHTML = message;
     },
 
-    // -- API helpers --
+    // --- API helpers ---
 
-    apiPost: function (page, action, data) {
+    apiPost: function (action, data) {
         return new Promise(function (resolve, reject) {
             const request = {
                 url: ApiClient.getUrl('Jellyfin2PopFeed/PopFeed/' + action),
-                dataType: 'json',
-                type: 'POST',
+                dataType: 'json', type: 'POST',
                 headers: { accept: 'application/json', 'Content-Type': 'application/json' },
                 data: JSON.stringify(data)
             };
@@ -136,30 +121,20 @@ const PopFeedConfig = {
                 resolve(result);
             }).catch(function (result) {
                 Dashboard.hideLoadingMsg();
-                PopFeedConfig.showMessage(page,
-                    (result.status ? result.status + ' - ' : '') +
-                    (result.statusText || 'Request failed.'),
-                    'error');
-                reject(result);
+                reject({ message: (result.status ? result.status + ' - ' : '') + (result.statusText || 'Request failed.') });
             });
         });
     },
 
-    apiGet: function (page, action) {
+    apiGet: function (action) {
         return new Promise(function (resolve, reject) {
-            const request = {
+            ApiClient.fetch({
                 url: ApiClient.getUrl('Jellyfin2PopFeed/PopFeed/' + action),
-                dataType: 'json',
-                type: 'GET'
-            };
-            ApiClient.fetch(request).then(function (result) {
+                dataType: 'json', type: 'GET'
+            }).then(function (result) {
                 resolve(result);
-            }).catch(function (result) {
-                PopFeedConfig.showMessage(page,
-                    (result.status ? result.status + ' - ' : '') +
-                    (result.statusText || 'Request failed.'),
-                    'error');
-                reject(result);
+            }).catch(function () {
+                reject({ message: 'Request failed.' });
             });
         });
     }
@@ -169,25 +144,20 @@ export default function (view) {
     view.querySelector('#authenticateBtn').addEventListener('click', function () {
         PopFeedConfig.authenticate(view);
     });
-
     view.querySelector('#testConnectionBtn').addEventListener('click', function () {
         PopFeedConfig.testConnection(view);
     });
-
     view.querySelector('#saveBtn').addEventListener('click', function () {
         PopFeedConfig.saveSettings(view);
     });
-
     view.querySelector('#disconnectBtn').addEventListener('click', function () {
         PopFeedConfig.disconnect(view);
     });
-
     view.querySelector('#popfeedConfigurationForm').addEventListener('submit', function (e) {
         PopFeedConfig.saveSettings(view);
         e.preventDefault();
         return false;
     });
-
     view.addEventListener('viewshow', function () {
         Dashboard.showLoadingMsg();
         PopFeedConfig.loadConfig(this);
