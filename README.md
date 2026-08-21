@@ -43,6 +43,21 @@ Coded with love and a bit of AI magic.
 
 That's it. Now when you finish a movie, it posts to your PopFeed feed.
 
+## Troubleshooting
+
+**"Error processing request" after update:**
+Clear the plugin cache and reinstall:
+```bash
+sudo systemctl stop jellyfin
+sudo rm -rf /var/lib/jellyfin/plugins/Jellyfin2PopFeed/
+sudo rm -rf /var/lib/jellyfin/plugins/configurations/Jellyfin.Plugin.Jellyfin2PopFeed*
+sudo systemctl start jellyfin
+```
+Then re-add the repository URL and install again.
+
+**Plugin not showing up in Catalog:**
+If the repository was already added, remove it and add it again to refresh the manifest.
+
 ## How It Works
 
 1. A playback session ends in Jellyfin
