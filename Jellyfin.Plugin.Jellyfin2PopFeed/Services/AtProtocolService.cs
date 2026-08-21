@@ -53,48 +53,43 @@ public class AtProtocolService : IAtProtocolService
         return null;
     }
 
-    public async Task<bool> CreateMoviePostAsync(
+    /// <summary>
+    /// Log a movie watch by creating a social.popfeed.feed.review record.
+    /// Uses rating=0 as neutral/no-rating to function as a watch log.
+    /// The tmdbId in identifiers is used for deduplication.
+    /// createdAt determines the "watched on" date in Popfeed.
+    /// </summary>
+    public async Task<bool> LogMovieWatchAsync(
         PluginConfiguration config,
         string movieTitle,
         int? movieYear,
         string? tmdbId,
         string? releaseDate,
         List<string>? genres,
-        string? director,
-        string? overview)
+        string? director)
     {
-        if (string.IsNullOrEmpty(config.AtProtocolAccessToken)) return false;
+        if (string.IsNullOrEmpty(config.AtProtocolAccessToken))
+            return false;
 
-        // Build identifiers object
         var identifiers = new Dictionary<string, string>();
         if (!string.IsNullOrEmpty(tmdbId))
             identifiers["tmdbId"] = tmdbId;
 
-        // Build text
-        var text = movieYear.HasValue
-            ? $"Watched {movieTitle} ({movieYear})"
-            : $"Watched {movieTitle}";
-
-        // Build the record matching social.popfeed.feed.note lexicon
         var recordFields = new Dictionary<string, object>
         {
-            ["$type"] = "social.popfeed.feed.note",
+            ["$type"] = "social.popfeed.feed.review",
             ["identifiers"] = identifiers,
             ["creativeWorkType"] = "movie",
-            ["text"] = text,
-            ["title"] = movieTitle,
+            ["rating"] = 0,
             ["createdAt"] = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture)
         };
 
-        // Optional: release date
+        if (!string.IsNullOrEmpty(movieTitle))
+            recordFields["title"] = movieTitle;
         if (!string.IsNullOrEmpty(releaseDate))
             recordFields["releaseDate"] = releaseDate;
-
-        // Optional: genres
         if (genres != null && genres.Count > 0)
             recordFields["genres"] = genres;
-
-        // Optional: main credit (director)
         if (!string.IsNullOrEmpty(director))
         {
             recordFields["mainCredit"] = director;
@@ -104,7 +99,7 @@ public class AtProtocolService : IAtProtocolService
         var requestObj = new
         {
             repo = config.AtProtocolDid,
-            collection = "social.popfeed.feed.note",
+            collection = "social.popfeed.feed.review",
             record = recordFields
         };
 
@@ -125,29 +120,34 @@ public class AtProtocolService : IAtProtocolService
             if (response.IsSuccessStatusCode)
             {
                 _logger.LogInformation(
-                    "Posted movie {Title} ({Year}) to PopFeed for {Handle}",
-                    movieTitle, movieYear, config.AtProtocolHandle);
+                    "Logged watch for {Title} ({Year}) on PopFeed review collection",
+                    movieTitle, movieYear);
                 return true;
             }
 
             _logger.LogError(
-                "Failed to post {Title} to PopFeed. Status: {Code}, Body: {Body}",
+                "Failed to log watch for {Title}. Status: {Code}, Body: {Body}",
                 movieTitle, response.StatusCode, body);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error posting movie {Title} to PopFeed", movieTitle);
+            _logger.LogError(ex, "Error logging watch for {Title} on PopFeed", movieTitle);
         }
         return false;
     }
 
-    public async Task<bool> MovieExistsOnPopFeedAsync(PluginConfiguration config, string? tmdbId, string movieTitle)
+    /// <summary>
+    /// Check if a review record for this movie already exists.
+    /// Queries the social.popfeed.feed.review collection and compares tmdbId.
+    /// </summary>
+    public async Task<bool> MovieWatchExistsAsync(PluginConfiguration config, string? tmdbId, string movieTitle)
     {
-        if (string.IsNullOrEmpty(config.AtProtocolAccessToken)) return false;
+        if (string.IsNullOrEmpty(config.AtProtocolAccessToken))
+            return false;
 
         var url = $"https://{config.AtProtocolPdsHost}/xrpc/com.atproto.repo.listRecords" +
                   $"?repo={config.AtProtocolDid}" +
-                  $"&collection=social.popfeed.feed.note" +
+                  $"&collection=social.popfeed.feed.review" +
                   $"&limit=100";
 
         try
@@ -156,7 +156,7 @@ public class AtProtocolService : IAtProtocolService
             httpRequest.Headers.Authorization =
                 new AuthenticationHeaderValue("Bearer", config.AtProtocolAccessToken);
 
-            var response = await _httpClient.SendAsync(httpRequest);
+        var response = await _httpClient.SendAsync(httpRequest);
             if (!response.IsSuccessStatusCode) return false;
 
             var json = await JsonSerializer.DeserializeAsync<JsonElement>(
@@ -177,22 +177,26 @@ public class AtProtocolService : IAtProtocolService
                 {
                     var existingVal = existingTmdb.GetString();
                     if (string.Equals(existingVal, tmdbId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        _logger.LogInformation(
+                            "Movie {Title} already logged, skipping", movieTitle);
                         return true;
+                    }
                 }
 
                 // Fallback: check by title
                 if (string.IsNullOrEmpty(tmdbId) &&
-                    value.TryGetProperty("text", out var textProp))
+                    value.TryGetProperty("title", out var titleProp))
                 {
-                    var postText = textProp.GetString() ?? string.Empty;
-                    if (postText.Contains(movieTitle, StringComparison.OrdinalIgnoreCase))
+                    var existingTitle = titleProp.GetString() ?? string.Empty;
+                    if (existingTitle.Contains(movieTitle, StringComparison.OrdinalIgnoreCase))
                         return true;
                 }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error checking if movie exists on PopFeed");
+            _logger.LogError(ex, "Error checking if movie log exists");
         }
         return false;
     }

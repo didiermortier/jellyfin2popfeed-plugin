@@ -70,7 +70,7 @@ public class PlaybackMonitorService : IHostedService, IDisposable
                     "Movie {Name} watched to {Percent:F1}%, posting to PopFeed",
                     e.Item.Name, watchedPercent);
 
-                await _popFeedService.PostWatchedMovieAsync(e.Item);
+                await _popFeedService.OnMovieFinishedAsync(e.Item);
             }
         }
         catch (Exception ex)
