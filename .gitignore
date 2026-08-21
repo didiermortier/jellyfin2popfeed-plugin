@@ -1,0 +1,18 @@
+# Build output
+bin/
+obj/
+
+# User-specific files
+*.suo
+*.user
+
+# NuGet packages
+packages/
+
+# IDE files
+.idea/
+.vs/
+*.userosscache
+
+# Test results
+TestResults/

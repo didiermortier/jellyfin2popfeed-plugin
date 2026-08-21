@@ -1,0 +1,17 @@
+{
+  "manifestVersion": 1,
+  "name": "Jellyfin2 PopFeed",
+  "description": "Automatically post watched movies to PopFeed via AT Protocol",
+  "id": "5f3e8a1c-2b7d-4e9f-a6c3-d1e4f8a2b9c5",
+  "version": "1.0.1",
+  "targetAbi": "10.11.0.0",
+  "category": "General",
+  "icon": "icon.svg",
+  "changelog": "v1.0.1 - Fixed build errors, enriched PopFeed posts with metadata (TMDb ID, genres, release date, etc.)",
+  "timeline": {
+    "creationDate": "2025-01-01",
+    "lastUpdatedDate": "2026-08-21"
+  },
+  "dependencies": [],
+  "fileName": "Jellyfin.Plugin.Jellyfin2PopFeed"
+}
