@@ -129,8 +129,8 @@ public class AtProtocolService : IAtProtocolService
     }
 
     /// <summary>
-    /// Log a movie watch by creating BOTH a review (for Activity feed) and a listItem (for Diary/Library).
-    /// Matches what the Popfeed app does when you manually log a movie.
+    /// Log a movie watch by creating a social.popfeed.feed.listItem in the Watched Movies list.
+    /// The Popfeed AppView generates the activity text from listItem's mainCredit/mainCreditRole.
     /// </summary>
     public async Task<bool> LogMovieWatchAsync(
         PluginConfiguration config,
@@ -157,29 +157,7 @@ public class AtProtocolService : IAtProtocolService
 
         var now = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture);
 
-        // 1. Create review record (drives the Activity feed - shows "marked as watched")
-        var review = new Dictionary<string, object>
-        {
-            ["$type"] = "social.popfeed.feed.review",
-            ["identifiers"] = identifiers,
-            ["creativeWorkType"] = "movie",
-            ["rating"] = 0,
-            ["createdAt"] = now
-        };
-        if (!string.IsNullOrEmpty(movieTitle)) review["title"] = movieTitle;
-        if (!string.IsNullOrEmpty(releaseDate)) review["releaseDate"] = releaseDate;
-        if (genres != null && genres.Count > 0) review["genres"] = genres;
-        if (!string.IsNullOrEmpty(director))
-        {
-            review["mainCredit"] = director;
-            review["mainCreditRole"] = "Directed by";
-        }
-        if (!string.IsNullOrEmpty(posterUrl)) review["posterUrl"] = posterUrl;
-        if (!string.IsNullOrEmpty(backdropUrl)) review["backdropUrl"] = backdropUrl;
-
-        await PostRecordAsync(config, "social.popfeed.feed.review", review);
-
-        // 2. Create listItem record (drives the Diary and Library)
+        // Create listItem record (drives Diary, Library, and Activity)
         var item = new Dictionary<string, object>
         {
             ["$type"] = "social.popfeed.feed.listItem",

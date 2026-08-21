@@ -10,7 +10,7 @@ namespace Jellyfin.Plugin.Jellyfin2PopFeed.Services;
 
 /// <summary>
 /// Monitors playback events and posts finished movies to PopFeed.
-/// Listens for PlaybackStop events at 95%+ completion.
+/// Listens for PlaybackStop events at 90%+ completion.
 /// </summary>
 public class PlaybackMonitorService : IHostedService, IDisposable
 {
@@ -56,7 +56,7 @@ public class PlaybackMonitorService : IHostedService, IDisposable
             if (e.Item == null)
                 return;
 
-            // Determine if the item was watched to completion (95%+)
+            // Determine if the item was watched to completion (90%+, matching Jellyfin's MaxResumePct)
             var totalTicks = e.Item.RunTimeTicks ?? 0;
             if (totalTicks <= 0)
                 return;
@@ -64,7 +64,7 @@ public class PlaybackMonitorService : IHostedService, IDisposable
             var positionTicks = e.PlaybackPositionTicks ?? 0;
             var watchedPercent = (double)positionTicks / totalTicks * 100;
 
-            if (watchedPercent >= 95.0)
+            if (watchedPercent >= 90.0)
             {
                 _logger.LogDebug(
                     "Movie {Name} watched to {Percent:F1}%, posting to PopFeed",
