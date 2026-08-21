@@ -47,32 +47,6 @@ const PopFeedConfig = {
         });
     },
 
-    saveSettings: function (page) {
-        Dashboard.showLoadingMsg();
-        var data = {
-            handle: page.querySelector('#handle').value,
-            password: page.querySelector('#password').value,
-            pdsHost: page.querySelector('#pdsHost').value,
-            autoPostMovies: page.querySelector('#autoPost').checked
-        };
-        var tmdbKey = page.querySelector('#tmdbApiKey').value;
-        if (tmdbKey) data.tmdbApiKey = tmdbKey;
-
-        PopFeedConfig.apiPost('Settings', data).then(function (result) {
-            PopFeedConfig.showMessage(page, 'Settings saved!', 'success');
-            var tmdbInput = page.querySelector('#tmdbApiKey');
-            tmdbInput.value = '';
-            tmdbInput.placeholder = result.hasTmdbKey ? 'API key saved (enter new to change)' : 'Enter TMDB API Key';
-            if (result.connected) {
-                PopFeedConfig.showConnected(page, result.handle, result.pdsHost);
-            } else {
-                PopFeedConfig.showDisconnected(page);
-            }
-        }).catch(function (err) {
-            PopFeedConfig.showMessage(page, err.message || 'Failed to save settings.', 'error');
-        });
-    },
-
     testConnection: function (page) {
         PopFeedConfig.apiGet('TestConnection').then(function (result) {
             if (result.connected) {
@@ -146,13 +120,7 @@ const PopFeedConfig = {
 export default function (view) {
     view.querySelector('#authenticateBtn').addEventListener('click', function () { PopFeedConfig.authenticate(view); });
     view.querySelector('#testConnectionBtn').addEventListener('click', function () { PopFeedConfig.testConnection(view); });
-    view.querySelector('#saveBtn').addEventListener('click', function () { PopFeedConfig.saveSettings(view); });
     view.querySelector('#disconnectBtn').addEventListener('click', function () { PopFeedConfig.disconnect(view); });
-    view.querySelector('#popfeedConfigurationForm').addEventListener('submit', function (e) {
-        PopFeedConfig.saveSettings(view);
-        e.preventDefault();
-        return false;
-    });
     view.addEventListener('viewshow', function () {
         Dashboard.showLoadingMsg();
         PopFeedConfig.loadConfig(this);
