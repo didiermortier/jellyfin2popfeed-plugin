@@ -6,7 +6,6 @@
         "overview": "Auto-log watched movies to Popfeed diary",
         "owner": "didiermortier",
         "category": "General",
-        "imageUrl": "https://raw.githubusercontent.com/didiermortier/jellyfin2popfeed-plugin/main/Jellyfin.Plugin.Jellyfin2PopFeed/thumb.png",
         "versions": [
             {
                 "version": "1.0.9.0",
