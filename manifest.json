@@ -2,26 +2,34 @@
     {
         "guid": "5f3e8a1c-2b7d-4e9f-a6c3-d1e4f8a2b9c5",
         "name": "Jellyfin2PopFeed",
-        "description": "Automatically post watched movies to PopFeed via AT Protocol. When you finish a movie on Jellyfin, it checks if it already exists on your PopFeed feed and posts it if it's new.",
-        "overview": "Auto-post watched movies to PopFeed",
+        "description": "Automatically log watched movies to your Popfeed diary via AT Protocol. When you finish a movie on Jellyfin, it adds it to your Watched Movies list with poster art from TMDB.",
+        "overview": "Auto-log watched movies to Popfeed diary",
         "owner": "didiermortier",
         "category": "General",
         "versions": [
             {
-                "version": "1.0.2.0",
-                "changelog": "Initial working release - fixed startup crash, added NuGet deps, Jellyfin dashboard UI.",
+                "version": "1.0.7.0",
+                "changelog": "Complete rewrite: now uses listItem instead of review. Movies appear in Diary + Watched Movies library. Added TMDB API Key setting for poster/backdrop images. Auto-discovers Watched Movies list URI on your PDS. Full dedup by tmdbId.",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.2/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
-                "checksum": "e66628fccbaafb8d9ee6cfd9052471f2",
-                "timestamp": "2026-08-21T18:30:00Z"
+                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.7/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
+                "checksum": "15a4af7f337c8972d505e2d22487a6a5",
+                "timestamp": "2026-08-21T23:30:00Z"
             },
             {
-                "version": "1.0.3.0",
-                "changelog": "Config page fixes: save no longer overwrites tokens, test connection works, connection status persists on page refresh.",
+                "version": "1.0.6.0",
+                "changelog": "Changed from creating posts to logging watch history (review).",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.3/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
-                "checksum": "ca974650fb480d58ebab8c723de17657",
-                "timestamp": "2026-08-21T20:00:00Z"
+                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.6/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
+                "checksum": "8985efefa966af80b829e4c86631e36d",
+                "timestamp": "2026-08-21T23:00:00Z"
+            },
+            {
+                "version": "1.0.5.0",
+                "changelog": "Fixed config persistence. loadConfig now fetches from custom Status endpoint.",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.5/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
+                "checksum": "59f4217341fe3307ca5f9bff3da2bef6",
+                "timestamp": "2026-08-21T22:00:00Z"
             },
             {
                 "version": "1.0.4.0",
@@ -32,28 +40,20 @@
                 "timestamp": "2026-08-21T21:00:00Z"
             },
             {
-                "version": "1.0.5.0",
-                "changelog": "Fixed config persistence. loadConfig now fetches from our own GET Status endpoint (bypasses Jellyfin PluginController serialization). Renamed display name to Jellyfin2PopFeed (one word). Full version history preserved.",
+                "version": "1.0.3.0",
+                "changelog": "Config page fixes: save no longer overwrites tokens, test connection works.",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.5/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
-                "checksum": "59f4217341fe3307ca5f9bff3da2bef6",
-                "timestamp": "2026-08-21T22:00:00Z"
+                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.3/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
+                "checksum": "ca974650fb480d58ebab8c723de17657",
+                "timestamp": "2026-08-21T20:00:00Z"
             },
             {
-                "version": "1.0.6.0",
-                "changelog": "Changed from creating posts (note) to logging watch history (review). Creates social.popfeed.feed.review records with rating=0 as watch logs. Dedup by tmdbId prevents overwriting dates.",
+                "version": "1.0.2.0",
+                "changelog": "Initial working release.",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.6/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
-                "checksum": "8985efefa966af80b829e4c86631e36d",
-                "timestamp": "2026-08-21T23:00:00Z"
-            },
-            {
-                "version": "1.0.7.0",
-                "changelog": "Complete rewrite: now uses listItem instead of review. Movies appear in Diary + Watched Movies library. Added TMDB API Key setting for poster/backdrop images. Auto-discovers Watched Movies list URI on your PDS. Full dedup by tmdbId.",
-                "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.7/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
-                "checksum": "15a4af7f337c8972d505e2d22487a6a5",
-                "timestamp": "2026-08-21T23:30:00Z"
+                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.2/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
+                "checksum": "e66628fccbaafb8d9ee6cfd9052471f2",
+                "timestamp": "2026-08-21T18:30:00Z"
             }
         ]
     }
