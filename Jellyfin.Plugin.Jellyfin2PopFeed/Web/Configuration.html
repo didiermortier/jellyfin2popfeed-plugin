@@ -5,6 +5,22 @@
                 <h1>Jellyfin2 PopFeed</h1>
                 <p>Automatically post watched movies to PopFeed via AT Protocol.</p>
 
+                <!-- Connected badge - always visible when authenticated -->
+                <div id="connectedBadge" class="hide" style="padding: 1em; background: #1a3a1a; border: 1px solid #2d6; border-radius: 4px; margin-bottom: 1em;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <span style="color: #2d6; font-size: 1.2em;">&#10003; <strong>Connected</strong></span>
+                            <div style="margin-top: 4px; color: #aaa;">
+                                <span id="badgeHandle"></span>
+                                <span id="badgePdsHost" style="margin-left: 8px;"></span>
+                            </div>
+                        </div>
+                        <button is="emby-button" id="disconnectBtn" type="button" class="raised" style="background: #633; border-color: #c44;">
+                            <i class="fa fa-sign-out"></i> Disconnect
+                        </button>
+                    </div>
+                </div>
+
                 <div class="inputContainer">
                     <input is="emby-input" id="handle" type="text" label="AT Protocol Handle" />
                     <div class="fieldDescription">Your Bluesky/Atmosphere handle (e.g., user.bsky.social or user.popfeed.social)</div>
@@ -12,7 +28,7 @@
 
                 <div class="inputContainer">
                     <input is="emby-input" id="password" type="password" label="Password" />
-                    <div class="fieldDescription">Your AT Protocol password or Bluesky App Password</div>
+                    <div class="fieldDescription">Your AT Protocol password or Bluesky App Password. Leave blank to keep existing.</div>
                 </div>
 
                 <div class="inputContainer">
@@ -42,7 +58,6 @@
                 </div>
 
                 <div id="statusMessage" class="hide" style="margin-top: 1em;"></div>
-                <div id="connectionStatus" class="hide" style="margin-top: 0.5em;"></div>
             </form>
         </div>
     </div>

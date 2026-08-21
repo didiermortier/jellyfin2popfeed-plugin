@@ -5,10 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Jellyfin.Plugin.Jellyfin2PopFeed.Web.Controllers;
 
-/// <summary>
-/// API controller for AT Protocol authentication and connection testing.
-/// Configuration save/load uses Jellyfin's built-in plugin API.
-/// </summary>
 [ApiController]
 [Authorize]
 [Route("Jellyfin2PopFeed/[controller]")]
@@ -22,10 +18,11 @@ public class PopFeedController : ControllerBase
     }
 
     /// <summary>
-    /// Authenticate against AT Protocol / PopFeed and store credentials.
+    /// Authenticate against AT Protocol and save everything in one call.
+    /// Returns the config state (without password) for the UI.
     /// </summary>
     [HttpPost("Authenticate")]
-    public async Task<ActionResult<AuthResult>> Authenticate([FromBody] AuthRequest request)
+    public async Task<ActionResult<object>> Authenticate([FromBody] AuthRequest request)
     {
         var authResult = await _atProtocolService.AuthenticateAsync(
             request.Handle, request.Password, request.PdsHost);
@@ -33,43 +30,102 @@ public class PopFeedController : ControllerBase
         if (authResult == null)
             return BadRequest(new { message = "Authentication failed. Check your handle and password." });
 
-        // Save credentials to plugin config, preserving existing settings
-        var config = Plugin.Instance.Configuration;
+        // Save EVERYTHING in one shot - handle, password, tokens, host, options
+        var config = Plugin.Instance!.Configuration;
         config.AtProtocolHandle = authResult.Handle ?? request.Handle;
         config.AtProtocolDid = authResult.Did;
         config.AtProtocolAccessToken = authResult.AccessToken;
         config.AtProtocolRefreshToken = authResult.RefreshToken;
         config.AtProtocolPdsHost = request.PdsHost;
-        Plugin.Instance.UpdateConfiguration(config);
+        config.AtProtocolPassword = request.Password;
+        config.AutoPostMovies = request.AutoPostMovies;
+        Plugin.Instance!.UpdateConfiguration(config);
 
-        // Don't send password back to client
         return Ok(new
         {
-            authResult.Did,
-            authResult.Handle,
-            authResult.AccessToken,
-            authResult.RefreshToken,
-            authResult.Expiry
+            connected = true,
+            handle = config.AtProtocolHandle,
+            pdsHost = config.AtProtocolPdsHost,
+            did = config.AtProtocolDid,
+            autoPostMovies = config.AutoPostMovies
         });
+    }
+
+    /// <summary>
+    /// Save settings without touching tokens. Server-side merge prevents race conditions.
+    /// </summary>
+    [HttpPost("Settings")]
+    public ActionResult<object> SaveSettings([FromBody] SettingsRequest request)
+    {
+        var config = Plugin.Instance!.Configuration;
+
+        // Only update fields the user explicitly sent
+        if (!string.IsNullOrEmpty(request.Handle))
+            config.AtProtocolHandle = request.Handle;
+        if (!string.IsNullOrEmpty(request.Password))
+            config.AtProtocolPassword = request.Password;
+        if (!string.IsNullOrEmpty(request.PdsHost))
+            config.AtProtocolPdsHost = request.PdsHost;
+        config.AutoPostMovies = request.AutoPostMovies;
+
+        // Preserve existing tokens if they exist
+        // (tokens are never sent from the UI, only from Authenticate/Disconnect)
+
+        Plugin.Instance!.UpdateConfiguration(config);
+
+        return Ok(new
+        {
+            connected = !string.IsNullOrEmpty(config.AtProtocolAccessToken),
+            handle = config.AtProtocolHandle,
+            pdsHost = config.AtProtocolPdsHost,
+            autoPostMovies = config.AutoPostMovies
+        });
+    }
+
+    /// <summary>
+    /// Disconnect: clear all auth tokens. Handle/password/host stay for easy re-auth.
+    /// </summary>
+    [HttpPost("Disconnect")]
+    public ActionResult<object> Disconnect()
+    {
+        var config = Plugin.Instance!.Configuration;
+        config.AtProtocolAccessToken = string.Empty;
+        config.AtProtocolRefreshToken = string.Empty;
+        config.AtProtocolDid = string.Empty;
+        Plugin.Instance!.UpdateConfiguration(config);
+
+        return Ok(new { connected = false });
     }
 
     /// <summary>
     /// Test that the stored connection is still valid.
     /// </summary>
     [HttpGet("TestConnection")]
-    public async Task<ActionResult<bool>> TestConnection()
+    public async Task<ActionResult<object>> TestConnection()
     {
-        var connected = await _atProtocolService.TestConnectionAsync(Plugin.Instance.Configuration);
-        return Ok(connected);
+        var config = Plugin.Instance!.Configuration;
+        var connected = await _atProtocolService.TestConnectionAsync(config);
+        return Ok(new
+        {
+            connected,
+            handle = connected ? config.AtProtocolHandle : null,
+            pdsHost = connected ? config.AtProtocolPdsHost : null
+        });
     }
 }
 
-/// <summary>
-/// Request model for authentication.
-/// </summary>
 public class AuthRequest
+{
+    public string Handle { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public string PdsHost { get; set; } = "popfeed.social";
+    public bool AutoPostMovies { get; set; } = true;
+}
+
+public class SettingsRequest
 {
     public string? Handle { get; set; }
     public string? Password { get; set; }
-    public string PdsHost { get; set; } = "popfeed.social";
+    public string? PdsHost { get; set; }
+    public bool AutoPostMovies { get; set; } = true;
 }

@@ -1,7 +1,7 @@
 ---
 name: "Jellyfin2 PopFeed"
 guid: "5f3e8a1c-2b7d-4e9f-a6c3-d1e4f8a2b9c5"
-version: "1.0.3.0"
+version: "1.0.4.0"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 owner: "didiermortier"
