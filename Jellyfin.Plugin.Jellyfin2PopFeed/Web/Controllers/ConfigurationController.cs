@@ -33,7 +33,7 @@ public class PopFeedController : ControllerBase
         if (authResult == null)
             return BadRequest(new { message = "Authentication failed. Check your handle and password." });
 
-        // Save credentials to plugin config
+        // Save credentials to plugin config, preserving existing settings
         var config = Plugin.Instance.Configuration;
         config.AtProtocolHandle = authResult.Handle ?? request.Handle;
         config.AtProtocolDid = authResult.Did;

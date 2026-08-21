@@ -21,18 +21,28 @@ const PopFeedConfigurationPage = {
         });
     },
     saveConfig: function (page) {
-        const config = {
-            atProtocolHandle: page.querySelector('#handle').value,
-            atProtocolPassword: page.querySelector('#password').value,
-            atProtocolPdsHost: page.querySelector('#pdsHost').value,
-            autoPostMovies: page.querySelector('#autoPost').checked
-        };
+        // Load existing config to preserve tokens that the user can't see
+        ApiClient.getPluginConfiguration(PopFeedConfigurationPage.pluginUniqueId).then(function (existingConfig) {
+            const config = {
+                atProtocolHandle: page.querySelector('#handle').value,
+                atProtocolPassword: page.querySelector('#password').value,
+                atProtocolPdsHost: page.querySelector('#pdsHost').value,
+                autoPostMovies: page.querySelector('#autoPost').checked,
+                // Preserve tokens from existing config
+                atProtocolDid: existingConfig.atProtocolDid || '',
+                atProtocolAccessToken: existingConfig.atProtocolAccessToken || '',
+                atProtocolRefreshToken: existingConfig.atProtocolRefreshToken || ''
+            };
 
-        ApiClient.updatePluginConfiguration(PopFeedConfigurationPage.pluginUniqueId, config).then(function (result) {
-            Dashboard.processPluginConfigurationUpdateResult(result);
-            PopFeedConfigurationPage.showMessage(page, 'Settings saved!', 'success');
+            ApiClient.updatePluginConfiguration(PopFeedConfigurationPage.pluginUniqueId, config).then(function (result) {
+                Dashboard.processPluginConfigurationUpdateResult(result);
+                PopFeedConfigurationPage.loadConfig(page);
+                PopFeedConfigurationPage.showMessage(page, 'Settings saved!', 'success');
+            }).catch(function () {
+                PopFeedConfigurationPage.showMessage(page, 'Failed to save settings.', 'error');
+            });
         }).catch(function () {
-            PopFeedConfigurationPage.showMessage(page, 'Failed to save settings.', 'error');
+            PopFeedConfigurationPage.showMessage(page, 'Failed to read current configuration.', 'error');
         });
     },
     authenticate: function (page) {
@@ -57,7 +67,8 @@ const PopFeedConfigurationPage = {
         };
 
         ApiClient.fetch(request).then(function (result) {
-            // Save the config including tokens
+            // The server-side Authenticate endpoint already saves handle, did, tokens to config.
+            // Now save the remaining form fields (password, autoPost) without overwriting tokens.
             PopFeedConfigurationPage.saveConfig(page);
             PopFeedConfigurationPage.showMessage(page, 'Authenticated successfully!', 'success');
             const statusDiv = page.querySelector('#connectionStatus');
@@ -65,7 +76,9 @@ const PopFeedConfigurationPage = {
             statusDiv.innerHTML = '<span style="color:green">&#10003; Connected as ' +
                 (result.handle || handle) + '</span>';
         }).catch(function (result) {
-            const msg = result.status + ' - ' + (result.statusText || 'Authentication failed');
+            const msg = (result.status && result.statusText)
+                ? result.status + ' - ' + result.statusText
+                : 'Authentication failed. Check credentials and PDS host.';
             PopFeedConfigurationPage.showMessage(page, msg, 'error');
             Dashboard.hideLoadingMsg();
         });
