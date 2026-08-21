@@ -132,8 +132,15 @@ public class AtProtocolService : IAtProtocolService
         if (string.IsNullOrEmpty(config.AtProtocolAccessToken)) return false;
         if (string.IsNullOrEmpty(config.WatchedMoviesListUri))
         {
-            _logger.LogError("No Watched Movies list URI discovered. Authenticate again or click Save.");
-            return false;
+            // Attempt on-the-fly discovery instead of failing
+            var discoveredUri = await DiscoverWatchedMoviesListAsync(config);
+            if (discoveredUri == null)
+            {
+                _logger.LogError("No Watched Movies list found on PDS. Please authenticate again.");
+                return false;
+            }
+            config.WatchedMoviesListUri = discoveredUri;
+            Plugin.Instance!.UpdateConfiguration(config);
         }
 
         var identifiers = new Dictionary<string, object>();
