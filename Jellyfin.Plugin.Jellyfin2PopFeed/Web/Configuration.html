@@ -3,9 +3,8 @@
         <div class="content-primary">
             <form id="popfeedConfigurationForm">
                 <h1>Jellyfin2PopFeed</h1>
-                <p>Automatically post watched movies to PopFeed via AT Protocol.</p>
+                <p>Automatically log watched movies to PopFeed via AT Protocol.</p>
 
-                <!-- Connected badge - always visible when authenticated -->
                 <div id="connectedBadge" class="hide" style="padding: 1em; background: #1a3a1a; border: 1px solid #2d6; border-radius: 4px; margin-bottom: 1em;">
                     <div style="display: flex; align-items: center; justify-content: space-between;">
                         <div>
@@ -36,12 +35,17 @@
                     <div class="fieldDescription">Your Personal Data Server. Default: popfeed.social</div>
                 </div>
 
+                <div class="inputContainer">
+                    <input is="emby-input" id="tmdbApiKey" type="password" label="TMDB API Key" />
+                    <div class="fieldDescription">Get a free API key at <a href="https://www.themoviedb.org/settings/api" target="_blank">themoviedb.org/settings/api</a>. Used to fetch poster images. Leave blank to keep existing.</div>
+                </div>
+
                 <div class="checkboxContainer checkboxContainer-withDescription">
                     <label>
                         <input is="emby-checkbox" id="autoPost" type="checkbox" checked />
-                        <span>Auto-post watched movies to PopFeed</span>
+                        <span>Auto-log watched movies to PopFeed</span>
                     </label>
-                    <div class="fieldDescription">When you finish a movie (95%+), automatically post to PopFeed if not already posted</div>
+                    <div class="fieldDescription">When you finish a movie (95%+), automatically add it to your PopFeed Watched Movies diary</div>
                 </div>
 
                 <br />

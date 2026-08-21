@@ -17,6 +17,8 @@ public class AuthResult
 public interface IAtProtocolService
 {
     Task<AuthResult?> AuthenticateAsync(string handle, string password, string pdsHost);
+    Task<string?> DiscoverWatchedMoviesListAsync(PluginConfiguration config);
+    Task<TmdbMovieResult?> FetchTmdbMovieAsync(string tmdbId, string apiKey);
     Task<bool> LogMovieWatchAsync(
         PluginConfiguration config,
         string movieTitle,
@@ -24,7 +26,10 @@ public interface IAtProtocolService
         string? tmdbId,
         string? releaseDate,
         List<string>? genres,
-        string? director);
+        string? director,
+        string? posterUrl,
+        string? backdropUrl,
+        string? imdbId);
     Task<bool> MovieWatchExistsAsync(PluginConfiguration config, string? tmdbId, string movieTitle);
     Task<bool> TestConnectionAsync(PluginConfiguration config);
 }

@@ -1,19 +1,18 @@
 ---
 name: "Jellyfin2PopFeed"
 guid: "5f3e8a1c-2b7d-4e9f-a6c3-d1e4f8a2b9c5"
-version: "1.0.6.0"
+version: "1.0.7.0"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 owner: "didiermortier"
-overview: "Auto-post watched movies to PopFeed"
+overview: "Auto-log watched movies to PopFeed diary"
 description: >
-  Automatically posts a note to PopFeed (social.popfeed.feed.note) whenever 
-  you finish watching a movie on Jellyfin. Checks for duplicates before posting.
-  Integrates with the AT Protocol for decentralized social media.
+  Automatically adds watched movies to your PopFeed Watched Movies list
+  via AT Protocol. Checks for duplicates, includes poster images from TMDB.
 category: "General"
 artifacts:
   - "Jellyfin.Plugin.Jellyfin2PopFeed.dll"
 changelog: >
-  v1.0.6 - Changed from creating posts (note) to logging watch history (review).
-  Plugin now creates social.popfeed.feed.review records with rating=0 as watch
-  logs instead of visible text posts. Dedup by tmdbId prevents overwriting dates.
+  v1.0.7 - Changed from review to listItem. Movies now appear in Diary
+  and Watched Movies library. Added TMDB API Key setting for poster images.
+  Auto-discovers Watched Movies list URI. Full dedup by tmdbId.

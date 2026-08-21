@@ -41,4 +41,14 @@ public class PluginConfiguration : BasePluginConfiguration
     /// Whether to automatically post watched movies.
     /// </summary>
     public bool AutoPostMovies { get; set; } = true;
+
+    /// <summary>
+    /// TMDB API key for fetching poster/backdrop URLs.
+    /// </summary>
+    public string TmdbApiKey { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Cached URI of the "Watched Movies" list on the user's PDS, discovered at auth time.
+    /// </summary>
+    public string WatchedMoviesListUri { get; set; } = string.Empty;
 }

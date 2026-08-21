@@ -17,10 +17,6 @@ public class PopFeedController : ControllerBase
         _atProtocolService = atProtocolService;
     }
 
-    /// <summary>
-    /// Returns current config state. Used by UI instead of the generic PluginController
-    /// to avoid serialization issues with BasePluginConfiguration properties.
-    /// </summary>
     [HttpGet("Status")]
     public ActionResult<object> GetStatus()
     {
@@ -30,14 +26,12 @@ public class PopFeedController : ControllerBase
             connected = !string.IsNullOrEmpty(cfg.AtProtocolAccessToken),
             handle = cfg.AtProtocolHandle ?? string.Empty,
             pdsHost = cfg.AtProtocolPdsHost ?? "popfeed.social",
-            autoPostMovies = cfg.AutoPostMovies
+            autoPostMovies = cfg.AutoPostMovies,
+            hasTmdbKey = !string.IsNullOrEmpty(cfg.TmdbApiKey),
+            hasWatchedList = !string.IsNullOrEmpty(cfg.WatchedMoviesListUri)
         });
     }
 
-    /// <summary>
-    /// Authenticate against AT Protocol and save everything in one call.
-    /// Validates that the authenticated handle matches what was requested.
-    /// </summary>
     [HttpPost("Authenticate")]
     public async Task<ActionResult<object>> Authenticate([FromBody] AuthRequest request)
     {
@@ -47,7 +41,6 @@ public class PopFeedController : ControllerBase
         if (authResult == null)
             return BadRequest(new { message = "Authentication failed. Check your handle, password, and PDS host." });
 
-        // Save EVERYTHING in one shot via server-side UpdateConfiguration
         var cfg = Plugin.Instance!.Configuration;
         cfg.AtProtocolHandle = authResult.Handle ?? request.Handle;
         cfg.AtProtocolDid = authResult.Did;
@@ -56,6 +49,13 @@ public class PopFeedController : ControllerBase
         cfg.AtProtocolPdsHost = request.PdsHost;
         cfg.AtProtocolPassword = request.Password;
         cfg.AutoPostMovies = request.AutoPostMovies;
+        cfg.TmdbApiKey = request.TmdbApiKey ?? cfg.TmdbApiKey;
+
+        // Discover "Watched Movies" list URI
+        var listUri = await _atProtocolService.DiscoverWatchedMoviesListAsync(cfg);
+        if (listUri != null)
+            cfg.WatchedMoviesListUri = listUri;
+
         Plugin.Instance!.UpdateConfiguration(cfg);
 
         return Ok(new
@@ -63,14 +63,12 @@ public class PopFeedController : ControllerBase
             connected = true,
             handle = cfg.AtProtocolHandle,
             pdsHost = cfg.AtProtocolPdsHost,
-            did = cfg.AtProtocolDid,
-            autoPostMovies = cfg.AutoPostMovies
+            autoPostMovies = cfg.AutoPostMovies,
+            hasTmdbKey = !string.IsNullOrEmpty(cfg.TmdbApiKey),
+            hasWatchedList = !string.IsNullOrEmpty(cfg.WatchedMoviesListUri)
         });
     }
 
-    /// <summary>
-    /// Save settings without touching tokens. Server-side merge.
-    /// </summary>
     [HttpPost("Settings")]
     public ActionResult<object> SaveSettings([FromBody] SettingsRequest request)
     {
@@ -82,6 +80,8 @@ public class PopFeedController : ControllerBase
             cfg.AtProtocolPassword = request.Password;
         if (!string.IsNullOrEmpty(request.PdsHost))
             cfg.AtProtocolPdsHost = request.PdsHost;
+        if (!string.IsNullOrEmpty(request.TmdbApiKey))
+            cfg.TmdbApiKey = request.TmdbApiKey;
         cfg.AutoPostMovies = request.AutoPostMovies;
 
         Plugin.Instance!.UpdateConfiguration(cfg);
@@ -91,13 +91,26 @@ public class PopFeedController : ControllerBase
             connected = !string.IsNullOrEmpty(cfg.AtProtocolAccessToken),
             handle = cfg.AtProtocolHandle,
             pdsHost = cfg.AtProtocolPdsHost,
-            autoPostMovies = cfg.AutoPostMovies
+            autoPostMovies = cfg.AutoPostMovies,
+            hasTmdbKey = !string.IsNullOrEmpty(cfg.TmdbApiKey),
+            hasWatchedList = !string.IsNullOrEmpty(cfg.WatchedMoviesListUri)
         });
     }
 
-    /// <summary>
-    /// Disconnect: clear auth tokens. Handle/password/host persist for re-auth.
-    /// </summary>
+    [HttpPost("DiscoverList")]
+    public async Task<ActionResult<object>> DiscoverList()
+    {
+        var cfg = Plugin.Instance!.Configuration;
+        var listUri = await _atProtocolService.DiscoverWatchedMoviesListAsync(cfg);
+        if (listUri != null)
+        {
+            cfg.WatchedMoviesListUri = listUri;
+            Plugin.Instance!.UpdateConfiguration(cfg);
+            return Ok(new { found = true, listUri });
+        }
+        return Ok(new { found = false });
+    }
+
     [HttpPost("Disconnect")]
     public ActionResult<object> Disconnect()
     {
@@ -106,13 +119,9 @@ public class PopFeedController : ControllerBase
         cfg.AtProtocolRefreshToken = string.Empty;
         cfg.AtProtocolDid = string.Empty;
         Plugin.Instance!.UpdateConfiguration(cfg);
-
         return Ok(new { connected = false });
     }
 
-    /// <summary>
-    /// Test stored connection against the AT Protocol PDS.
-    /// </summary>
     [HttpGet("TestConnection")]
     public async Task<ActionResult<object>> TestConnection()
     {
@@ -133,6 +142,7 @@ public class AuthRequest
     public string Password { get; set; } = string.Empty;
     public string PdsHost { get; set; } = "popfeed.social";
     public bool AutoPostMovies { get; set; } = true;
+    public string? TmdbApiKey { get; set; }
 }
 
 public class SettingsRequest
@@ -141,4 +151,5 @@ public class SettingsRequest
     public string? Password { get; set; }
     public string? PdsHost { get; set; }
     public bool AutoPostMovies { get; set; } = true;
+    public string? TmdbApiKey { get; set; }
 }

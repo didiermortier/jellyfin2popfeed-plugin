@@ -35,32 +35,53 @@ public class PopFeedService : IPopFeedService
         var tmdbId = item.ProviderIds.TryGetValue("Tmdb", out var id) ? id : null;
 
         if (string.IsNullOrEmpty(tmdbId))
-            _logger.LogWarning("No TMDb ID available for {Title}", movieTitle);
-
-        // Check if already logged - prevents overwriting the watch date
-        if (await _atProtocolService.MovieWatchExistsAsync(config, tmdbId, movieTitle))
         {
-            _logger.LogInformation("Movie {Title} ({Year}) already logged, skipping", movieTitle, movieYear);
+            _logger.LogWarning("No TMDb ID for {Title}, cannot log", movieTitle);
             return;
         }
 
-        // Gather metadata for enriched log
-        var releaseDate = item.PremiereDate?.ToString("o");
+        // Check if already in Watched Movies list
+        if (await _atProtocolService.MovieWatchExistsAsync(config, tmdbId, movieTitle))
+        {
+            _logger.LogInformation("Movie {Title} already in Watched Movies list, skipping", movieTitle);
+            return;
+        }
+
+        // Fetch poster/backdrop from TMDB if API key is configured
+        string? posterUrl = null;
+        string? backdropUrl = null;
+        string? imdbId = null;
+
+        if (!string.IsNullOrEmpty(config.TmdbApiKey))
+        {
+            var tmdb = await _atProtocolService.FetchTmdbMovieAsync(tmdbId, config.TmdbApiKey);
+            if (tmdb != null)
+            {
+                posterUrl = tmdb.PosterUrl;
+                backdropUrl = tmdb.BackdropUrl;
+                imdbId = tmdb.ImdbId;
+                _logger.LogDebug("Fetched TMDB data for {Title}: poster={Poster}", movieTitle, posterUrl != null ? "yes" : "no");
+            }
+        }
+
+        // Gather remaining metadata
+        var releaseDate = item.PremiereDate?.ToString("yyyy-MM-dd");
         var genres = item.Genres?.ToList() ?? new List<string>();
         var director = GetDirector(item);
 
-        // Create the review record (acts as a watch log)
+        // Create the listItem in Watched Movies
         var success = await _atProtocolService.LogMovieWatchAsync(
-            config, movieTitle, movieYear, tmdbId, releaseDate, genres, director);
+            config, movieTitle, movieYear, tmdbId, releaseDate, genres, director,
+            posterUrl, backdropUrl, imdbId);
 
         if (success)
-            _logger.LogInformation("Logged watch for {Title} ({Year}) on PopFeed", movieTitle, movieYear);
+            _logger.LogInformation("Logged watch for {Title} ({Year}) to PopFeed Watched Movies", movieTitle, movieYear);
         else
-            _logger.LogError("Failed to log watch for {Title} ({Year}) on PopFeed", movieTitle, movieYear);
+            _logger.LogError("Failed to log watch for {Title} ({Year})", movieTitle, movieYear);
     }
 
     private static string? GetDirector(BaseItem item)
     {
-        return null; // Future: inject ILibraryManager to look up directors from People
+        return null; // Future: inject ILibraryManager for People lookup
     }
 }
