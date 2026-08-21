@@ -47,8 +47,13 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
         {
             new PluginPageInfo
             {
-                Name = "Jellyfin2PopFeed",
-                EmbeddedResourcePath = GetType().Namespace + ".Web.Views.Configuration.html",
+                Name = "jellyfin2popfeed",
+                EmbeddedResourcePath = GetType().Namespace + ".Web.Configuration.html",
+            },
+            new PluginPageInfo
+            {
+                Name = "jellyfin2popfeedjs",
+                EmbeddedResourcePath = GetType().Namespace + ".Web.Configuration.js",
             }
         };
     }

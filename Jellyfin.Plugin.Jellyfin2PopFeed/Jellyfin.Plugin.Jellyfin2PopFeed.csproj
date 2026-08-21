@@ -10,16 +10,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Web/Configuration.html" />
+    <None Remove="Web/Configuration.js" />
+    <EmbeddedResource Include="Web/Configuration.html" />
+    <EmbeddedResource Include="Web/Configuration.js" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Jellyfin.Controller" Version="10.11.5">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
     <PackageReference Include="Jellyfin.Model" Version="10.11.5">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Web/Views/**/*.html" />
   </ItemGroup>
 
 </Project>

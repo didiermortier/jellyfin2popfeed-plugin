@@ -1,0 +1,49 @@
+<div id="popfeedConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage" data-controller="__plugin/jellyfin2popfeedjs">
+    <div data-role="content">
+        <div class="content-primary">
+            <form id="popfeedConfigurationForm">
+                <h1>Jellyfin2 PopFeed</h1>
+                <p>Automatically post watched movies to PopFeed via AT Protocol.</p>
+
+                <div class="inputContainer">
+                    <input is="emby-input" id="handle" type="text" label="AT Protocol Handle" />
+                    <div class="fieldDescription">Your Bluesky/Atmosphere handle (e.g., user.bsky.social or user.popfeed.social)</div>
+                </div>
+
+                <div class="inputContainer">
+                    <input is="emby-input" id="password" type="password" label="App Password" />
+                    <div class="fieldDescription">Generate an App Password in Settings &gt; App Passwords</div>
+                </div>
+
+                <div class="inputContainer">
+                    <input is="emby-input" id="pdsHost" type="text" label="PDS Host" value="popfeed.social" />
+                    <div class="fieldDescription">Your Personal Data Server. Default: popfeed.social</div>
+                </div>
+
+                <div class="checkboxContainer checkboxContainer-withDescription">
+                    <label>
+                        <input is="emby-checkbox" id="autoPost" type="checkbox" checked />
+                        <span>Auto-post watched movies to PopFeed</span>
+                    </label>
+                    <div class="fieldDescription">When you finish a movie (95%+), automatically post to PopFeed if not already posted</div>
+                </div>
+
+                <br />
+                <div>
+                    <button is="emby-button" id="authenticateBtn" type="button" class="raised button-primary">
+                        <i class="fa fa-key"></i> Authenticate &amp; Save
+                    </button>
+                    <button is="emby-button" id="testConnectionBtn" type="button" class="raised">
+                        <i class="fa fa-plug"></i> Test Connection
+                    </button>
+                    <button is="emby-button" id="saveBtn" type="button" class="raised button-accent">
+                        <i class="fa fa-save"></i> Save Settings
+                    </button>
+                </div>
+
+                <div id="statusMessage" class="hide" style="margin-top: 1em;"></div>
+                <div id="connectionStatus" class="hide" style="margin-top: 0.5em;"></div>
+            </form>
+        </div>
+    </div>
+</div>
