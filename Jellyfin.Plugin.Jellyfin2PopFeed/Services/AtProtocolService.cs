@@ -49,9 +49,6 @@ public class AtProtocolService : IAtProtocolService
         return null;
     }
 
-    /// <summary>
-    /// Discover the user's "Watched Movies" list URI by querying their PDS.
-    /// </summary>
     public async Task<string?> DiscoverWatchedMoviesListAsync(PluginConfiguration config)
     {
         if (string.IsNullOrEmpty(config.AtProtocolAccessToken)) return null;
@@ -88,11 +85,11 @@ public class AtProtocolService : IAtProtocolService
     }
 
     /// <summary>
-    /// Fetch movie metadata from TMDB API to get poster and backdrop paths.
+    /// Fetch movie metadata from TMDB API to get poster, backdrop, credits, and IMDB ID.
     /// </summary>
     public async Task<TmdbMovieResult?> FetchTmdbMovieAsync(string tmdbId, string apiKey)
     {
-        var url = $"https://api.themoviedb.org/3/movie/{tmdbId}?api_key={apiKey}";
+        var url = $"https://api.themoviedb.org/3/movie/{tmdbId}?api_key={apiKey}&append_to_response=credits";
         try
         {
             var resp = await _httpClient.GetAsync(url);
@@ -103,11 +100,28 @@ public class AtProtocolService : IAtProtocolService
             var backdropPath = json.TryGetProperty("backdrop_path", out var bp) ? bp.GetString() : null;
             var imdbId = json.TryGetProperty("imdb_id", out var imdb) ? imdb.GetString() : null;
 
+            // Extract director from credits
+            string? director = null;
+            if (json.TryGetProperty("credits", out var credits) &&
+                credits.TryGetProperty("crew", out var crew))
+            {
+                foreach (var member in crew.EnumerateArray())
+                {
+                    if (member.TryGetProperty("job", out var job) &&
+                        string.Equals(job.GetString(), "Director", StringComparison.OrdinalIgnoreCase))
+                    {
+                        director = member.TryGetProperty("name", out var name) ? name.GetString() : null;
+                        break;
+                    }
+                }
+            }
+
             return new TmdbMovieResult
             {
                 PosterUrl = posterPath != null ? $"https://image.tmdb.org/t/p/original{posterPath}" : null,
                 BackdropUrl = backdropPath != null ? $"https://image.tmdb.org/t/p/original{backdropPath}" : null,
-                ImdbId = imdbId
+                ImdbId = imdbId,
+                Director = director
             };
         }
         catch (Exception ex) { _logger.LogError(ex, "Error fetching TMDB data for {TmdbId}", tmdbId); }
@@ -115,7 +129,8 @@ public class AtProtocolService : IAtProtocolService
     }
 
     /// <summary>
-    /// Log a movie watch by creating a social.popfeed.feed.listItem in the Watched Movies list.
+    /// Log a movie watch by creating BOTH a review (for Activity feed) and a listItem (for Diary/Library).
+    /// Matches what the Popfeed app does when you manually log a movie.
     /// </summary>
     public async Task<bool> LogMovieWatchAsync(
         PluginConfiguration config,
@@ -140,7 +155,32 @@ public class AtProtocolService : IAtProtocolService
         if (!string.IsNullOrEmpty(tmdbId)) identifiers["tmdbId"] = tmdbId;
         if (!string.IsNullOrEmpty(imdbId)) identifiers["imdbId"] = imdbId;
 
-        var record = new Dictionary<string, object>
+        var now = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture);
+
+        // 1. Create review record (drives the Activity feed - shows "marked as watched")
+        var review = new Dictionary<string, object>
+        {
+            ["$type"] = "social.popfeed.feed.review",
+            ["identifiers"] = identifiers,
+            ["creativeWorkType"] = "movie",
+            ["rating"] = 0,
+            ["createdAt"] = now
+        };
+        if (!string.IsNullOrEmpty(movieTitle)) review["title"] = movieTitle;
+        if (!string.IsNullOrEmpty(releaseDate)) review["releaseDate"] = releaseDate;
+        if (genres != null && genres.Count > 0) review["genres"] = genres;
+        if (!string.IsNullOrEmpty(director))
+        {
+            review["mainCredit"] = director;
+            review["mainCreditRole"] = "Directed by";
+        }
+        if (!string.IsNullOrEmpty(posterUrl)) review["posterUrl"] = posterUrl;
+        if (!string.IsNullOrEmpty(backdropUrl)) review["backdropUrl"] = backdropUrl;
+
+        await PostRecordAsync(config, "social.popfeed.feed.review", review);
+
+        // 2. Create listItem record (drives the Diary and Library)
+        var item = new Dictionary<string, object>
         {
             ["$type"] = "social.popfeed.feed.listItem",
             ["identifiers"] = identifiers,
@@ -148,20 +188,29 @@ public class AtProtocolService : IAtProtocolService
             ["title"] = movieTitle,
             ["listUri"] = config.WatchedMoviesListUri,
             ["listType"] = "watched_movies",
-            ["addedAt"] = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture)
+            ["addedAt"] = now
         };
-
-        if (!string.IsNullOrEmpty(releaseDate)) record["releaseDate"] = releaseDate;
-        if (genres != null && genres.Count > 0) record["genres"] = genres;
+        if (!string.IsNullOrEmpty(releaseDate)) item["releaseDate"] = releaseDate;
+        if (genres != null && genres.Count > 0) item["genres"] = genres;
         if (!string.IsNullOrEmpty(director))
         {
-            record["mainCredit"] = director;
-            record["mainCreditRole"] = "director";
+            item["mainCredit"] = director;
+            item["mainCreditRole"] = "Directed by";
         }
-        if (!string.IsNullOrEmpty(posterUrl)) record["posterUrl"] = posterUrl;
-        if (!string.IsNullOrEmpty(backdropUrl)) record["backdropUrl"] = backdropUrl;
+        if (!string.IsNullOrEmpty(posterUrl)) item["posterUrl"] = posterUrl;
+        if (!string.IsNullOrEmpty(backdropUrl)) item["backdropUrl"] = backdropUrl;
 
-        var body = new { repo = config.AtProtocolDid, collection = "social.popfeed.feed.listItem", record };
+        var itemOk = await PostRecordAsync(config, "social.popfeed.feed.listItem", item);
+
+        if (itemOk)
+            _logger.LogInformation("Logged watch for {Title} to Popfeed (review + listItem)", movieTitle);
+
+        return itemOk;
+    }
+
+    private async Task<bool> PostRecordAsync(PluginConfiguration config, string collection, Dictionary<string, object> record)
+    {
+        var body = new { repo = config.AtProtocolDid, collection, record };
         var url = $"https://{config.AtProtocolPdsHost}/xrpc/com.atproto.repo.createRecord";
         var jsonContent = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
 
@@ -173,24 +222,18 @@ public class AtProtocolService : IAtProtocolService
             var resp = await _httpClient.SendAsync(req);
             var respBody = await resp.Content.ReadAsStringAsync();
 
-            if (resp.IsSuccessStatusCode)
-            {
-                _logger.LogInformation("Logged watch for {Title} to Watched Movies list", movieTitle);
-                return true;
-            }
-            _logger.LogError("Failed to log {Title}. Status: {Code}, Body: {Body}", movieTitle, resp.StatusCode, respBody);
+            if (resp.IsSuccessStatusCode) return true;
+            _logger.LogError("Post to {Coll} failed. Status: {Code}, Body: {Body}", collection, resp.StatusCode, respBody);
         }
-        catch (Exception ex) { _logger.LogError(ex, "Error logging watch for {Title}", movieTitle); }
+        catch (Exception ex) { _logger.LogError(ex, "Error posting to {Coll}", collection); }
         return false;
     }
 
-    /// <summary>
-    /// Check if a listItem for this movie already exists in the Watched Movies collection.
-    /// </summary>
     public async Task<bool> MovieWatchExistsAsync(PluginConfiguration config, string? tmdbId, string movieTitle)
     {
         if (string.IsNullOrEmpty(config.AtProtocolAccessToken)) return false;
 
+        // Check listItem collection (primary source of truth for diary entries)
         var url = $"https://{config.AtProtocolPdsHost}/xrpc/com.atproto.repo.listRecords" +
                   $"?repo={config.AtProtocolDid}&collection=social.popfeed.feed.listItem&limit=100";
 
@@ -208,7 +251,6 @@ public class AtProtocolService : IAtProtocolService
             {
                 if (!record.TryGetProperty("value", out var value)) continue;
 
-                // Check by TMDb ID
                 if (!string.IsNullOrEmpty(tmdbId) &&
                     value.TryGetProperty("identifiers", out var ids) &&
                     ids.TryGetProperty("tmdbId", out var tid))
@@ -220,7 +262,6 @@ public class AtProtocolService : IAtProtocolService
                     }
                 }
 
-                // Fallback by title
                 if (string.IsNullOrEmpty(tmdbId) &&
                     value.TryGetProperty("title", out var tp))
                 {
@@ -253,4 +294,5 @@ public class TmdbMovieResult
     public string? PosterUrl { get; set; }
     public string? BackdropUrl { get; set; }
     public string? ImdbId { get; set; }
+    public string? Director { get; set; }
 }

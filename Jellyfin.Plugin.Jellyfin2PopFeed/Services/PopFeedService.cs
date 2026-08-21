@@ -47,10 +47,11 @@ public class PopFeedService : IPopFeedService
             return;
         }
 
-        // Fetch poster/backdrop from TMDB if API key is configured
+        // Fetch poster/backdrop/director from TMDB if API key is configured
         string? posterUrl = null;
         string? backdropUrl = null;
         string? imdbId = null;
+        string? director = null;
 
         if (!string.IsNullOrEmpty(config.TmdbApiKey))
         {
@@ -60,16 +61,17 @@ public class PopFeedService : IPopFeedService
                 posterUrl = tmdb.PosterUrl;
                 backdropUrl = tmdb.BackdropUrl;
                 imdbId = tmdb.ImdbId;
-                _logger.LogDebug("Fetched TMDB data for {Title}: poster={Poster}", movieTitle, posterUrl != null ? "yes" : "no");
+                director = tmdb.Director;
+                _logger.LogDebug("Fetched TMDB data for {Title}: poster={Poster}, director={Director}",
+                    movieTitle, posterUrl != null ? "yes" : "no", director ?? "none");
             }
         }
 
         // Gather remaining metadata
         var releaseDate = item.PremiereDate?.ToString("yyyy-MM-dd");
         var genres = item.Genres?.ToList() ?? new List<string>();
-        var director = GetDirector(item);
 
-        // Create the listItem in Watched Movies
+        // Create both listItem (Diary/Library) and review (Activity)
         var success = await _atProtocolService.LogMovieWatchAsync(
             config, movieTitle, movieYear, tmdbId, releaseDate, genres, director,
             posterUrl, backdropUrl, imdbId);
@@ -78,10 +80,5 @@ public class PopFeedService : IPopFeedService
             _logger.LogInformation("Logged watch for {Title} ({Year}) to PopFeed Watched Movies", movieTitle, movieYear);
         else
             _logger.LogError("Failed to log watch for {Title} ({Year})", movieTitle, movieYear);
-    }
-
-    private static string? GetDirector(BaseItem item)
-    {
-        return null; // Future: inject ILibraryManager for People lookup
     }
 }
