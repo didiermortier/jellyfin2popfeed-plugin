@@ -1,16 +1,36 @@
-# Jellyfin2 PopFeed Plugin
+# Jellyfin2PopFeed
 
-Automatically post watched movies to [PopFeed](https://popfeed.social) via the AT Protocol. When you finish watching a movie on Jellyfin (95%+ completion), the plugin checks if it already exists on your PopFeed feed and posts it if it's new.
-
-Coded with love and a bit of AI magic. 
+Automatically log watched movies to your [PopFeed](https://popfeed.social) Diary and Watched Movies library via AT Protocol. No manual steps -- finish a movie on Jellyfin, it shows up on PopFeed with poster art, director, and metadata.
 
 ## Features
 
-- **Automatic posting** - No manual steps. Finish a movie, it posts.
-- **Duplicate detection** - Checks by TMDb ID (or title as fallback) before posting.
-- **Enriched posts** - Posts include movie title, year, TMDb ID, release date, genres, and more (matching the `social.popfeed.feed.note` lexicon).
-- **Settings page** - Configure credentials and toggle auto-posting from the Jellyfin Dashboard.
-- **Global settings** - One PopFeed account for your whole server.
+- **Auto-log movies** - Finish a movie (90%+), it logs to your PopFeed diary automatically
+- **Dedup by TMDb ID** - Never double-posts. Checks existing listItem records before creating a new one
+- **TMDB poster art** - Posters and backdrops are fetched from TMDb and stored as permanent CDN URLs (requires free TMDb API key)
+- **Director credit** - Director name extracted from TMDb credits API
+- **Full metadata** - Title, year, TMDb ID, IMDB ID, genres, release date, genres, main credit, poster, backdrop
+- **Dashboard settings** - Configure handle, password, PDS host, TMDb API key from Jellyfin Dashboard
+- **Persistent config** - Settings survive page refresh, back navigation, and server restarts
+- **Global account** - One PopFeed account for your whole Jellyfin server
+
+## What gets created
+
+The plugin creates a single `social.popfeed.feed.listItem` record on your PDS with:
+
+| Field | Example |
+|-------|---------|
+| identifiers.tmdbId | "980431" |
+| creativeWorkType | "movie" |
+| title | "Avatar Aang: The Last Airbender" |
+| listType | "watched_movies" |
+| posterUrl | https://image.tmdb.org/t/p/original/....jpg |
+| mainCredit | "Matt Shakman" |
+| mainCreditRole | "Directed by" |
+| genres | ["Science Fiction", "Adventure"] |
+| releaseDate | "2025-07-22" |
+| addedAt | 2026-08-21T23:50:10Z |
+
+The PopFeed AppView generates the Activity feed entry from the listItem record.
 
 ## Installation
 
@@ -21,7 +41,7 @@ Coded with love and a bit of AI magic.
    ```
    https://raw.githubusercontent.com/didiermortier/jellyfin2popfeed-plugin/main/manifest.json
    ```
-3. Go to **Catalog**, find **Jellyfin2 PopFeed**, click **Install**
+3. Go to **Catalog**, find **Jellyfin2PopFeed**, click **Install**
 4. Restart Jellyfin
 
 ### Manual Installation
@@ -34,14 +54,14 @@ Coded with love and a bit of AI magic.
 
 ## Configuration
 
-1. Go to **Dashboard > Plugins > Jellyfin2 PopFeed**
+1. Go to **Dashboard > Plugins > Jellyfin2PopFeed**
 2. Enter your **AT Protocol Handle** (e.g., `user.bsky.social` or `user.popfeed.social`)
-3. Enter an **App Password** (generate one in your Bluesky/Atmosphere settings: Settings > App Passwords)
-4. Leave **PDS Host** as `popfeed.social` (or change if using a different PDS)
-5. Click **Authenticate & Save**
-6. Click **Test Connection** to verify
-
-That's it. Now when you finish a movie, it posts to your PopFeed feed.
+3. Enter your **Password** (Bluesky App Password or PDS password)
+4. Set **PDS Host** to `popfeed.social` (or your PDS)
+5. **TMDB API Key** (optional but recommended): Get a free key at [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api). Required for poster images and director names.
+6. Click **Authenticate & Save** -- the plugin discovers your Watched Movies list automatically
+7. Click **Test Connection** to verify
+8. Toggle **Auto-log watched movies** on or off
 
 ## Troubleshooting
 
@@ -50,22 +70,25 @@ Clear the plugin cache and reinstall:
 ```bash
 sudo systemctl stop jellyfin
 sudo rm -rf /var/lib/jellyfin/plugins/Jellyfin2PopFeed/
-sudo rm -rf /var/lib/jellyfin/plugins/configurations/Jellyfin.Plugin.Jellyfin2PopFeed*
 sudo systemctl start jellyfin
 ```
 Then re-add the repository URL and install again.
 
 **Plugin not showing up in Catalog:**
-If the repository was already added, remove it and add it again to refresh the manifest.
+Remove the repository and add it again to refresh the manifest.
+
+**Poster images not showing:**
+Make sure you entered a valid TMDb API Key. The plugin fetches posters from TMDb's API.
 
 ## How It Works
 
-1. A playback session ends in Jellyfin
-2. The plugin checks if the movie was watched to 95%+ completion
-3. It looks up the movie's metadata (title, year, TMDb ID, genres, release date)
-4. It queries PopFeed for existing posts with the same TMDb ID
-5. If no match is found, it creates a `social.popfeed.feed.note` record via `com.atproto.repo.createRecord`
-6. The post appears on PopFeed and (if cross-posted) on Bluesky
+1. A movie playback session ends in Jellyfin
+2. The plugin checks if the movie was watched to **90%+** completion (matches Jellyfin's own max-resume threshold)
+3. It looks up the movie's metadata (title, year, TMDb ID, genres)
+4. If a TMDb API key is set, it fetches poster URL, backdrop URL, IMDB ID, and director from TMDb
+5. It queries your PDS for existing `social.popfeed.feed.listItem` records with the same TMDb ID
+6. If no match is found, it creates a `social.popfeed.feed.listItem` via `com.atproto.repo.createRecord`
+7. The movie appears in your PopFeed Diary, Watched Movies library, and Activity feed
 
 ## Building from Source
 
@@ -76,23 +99,33 @@ cd jellyfin2popfeed-plugin
 dotnet build Jellyfin.Plugin.Jellyfin2PopFeed/Jellyfin.Plugin.Jellyfin2PopFeed.csproj
 ```
 
-The compiled DLL will be in:
-```
-Jellyfin.Plugin.Jellyfin2PopFeed/bin/Release/net9.0/Jellyfin.Plugin.Jellyfin2PopFeed.dll
-```
-
 ## PopFeed Lexicon
 
-This plugin writes to the `social.popfeed.feed.note` collection on AT Protocol. For more details, see the [PopFeed Community Lexicons](https://github.com/Popfeed-Social/Popfeed-Community/tree/main/lexicons).
+This plugin writes to the `social.popfeed.feed.listItem` collection. For more details, see the [PopFeed Community repo](https://github.com/Popfeed-Social/Popfeed-Community/tree/main/lexicons).
 
 ## Roadmap
 
-- [x] Movie support (MVP)
-- [ ] TV show / episode support
-- [ ] Customizable post text
-- [ ] Per-user PopFeed accounts
-- [ ] Poster image uploads
+- [x] Movie support -- Diary, Watched Movies, Activity
+- [x] Poster image upload via TMDb API
+- [x] Director credit from TMDb credits API
+- [x] Duplicate detection by TMDb ID
+- [x] Dashboard settings with persistent config
+- [ ] TV show support (per-show, not per-episode)
+- [ ] Music album support
+- [ ] Customizable log text
+
+## Version History
+
+| Version | Changes |
+|---------|---------|
+| 1.1.0 | Final stable release. Removed review record (listItem only). 90% threshold. |
+| 1.0.9 | Activity fix, thumbnail, threshold 95% -> 90% |
+| 1.0.8 | Activity feed fix (listItem + review) |
+| 1.0.7 | Full rewrite: listItem-based, TMDb API Key, auto-discover list |
+| 1.0.6 | Review-based logging |
+| 1.0.5 | Config persistence fix, renamed to one word |
+| 1.0.4 - 1.0.2 | Initial releases |
 
 ## License
 
-GPL-3.0 - Because Jellyfin plugins link against GPLv3 code.
+GPL-3.0 -- Because Jellyfin plugins link against GPLv3 code.
