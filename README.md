@@ -90,7 +90,7 @@ Make sure you entered a valid TMDb API Key. The plugin fetches posters from TMDb
 4. If a TMDb API key is set, it fetches poster URL, backdrop URL, IMDB ID, and director from TMDb
 5. It queries your PDS for existing `social.popfeed.feed.listItem` records with the same TMDb ID
 6. If no match is found, it creates a `social.popfeed.feed.listItem` via `com.atproto.repo.createRecord`
-7. The movie appears in your PopFeed Diary, Watched Movies library, and Activity feed
+7. The movie appears in your PopFeed Diary and Watched Movies library.
 
 ## Building from Source
 
