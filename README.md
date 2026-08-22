@@ -2,6 +2,8 @@
 
 Automatically log watched movies to your [PopFeed](https://popfeed.social) Diary and Watched Movies library via AT Protocol. No manual steps -- finish a movie on Jellyfin, it shows up on PopFeed with poster art, director, and metadata.
 
+*Vibe-coded with ❤️*
+
 ## Features
 
 - **Auto-log movies** - Finish a movie (90%+), it logs to your PopFeed diary automatically
