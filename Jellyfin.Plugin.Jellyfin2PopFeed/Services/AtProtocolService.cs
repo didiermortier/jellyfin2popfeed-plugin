@@ -75,8 +75,7 @@ public class AtProtocolService : IAtProtocolService
                     if (uri != null)
                     {
                         _logger.LogInformation("Discovered Watched Movies list: {Uri}", uri);
-                        return uri;
-                    }
+                        return uri;                    }
                 }
             }
         }
@@ -147,7 +146,7 @@ public class AtProtocolService : IAtProtocolService
         if (string.IsNullOrEmpty(config.AtProtocolAccessToken)) return false;
         if (string.IsNullOrEmpty(config.WatchedMoviesListUri))
         {
-            _logger.LogError("No Watched Movies list URI discovered. Authenticate again or click Save.");
+            _logger.LogError("No Watched Movies list URI discovered.Authenticate again or click Save.");
             return false;
         }
 
@@ -186,24 +185,82 @@ public class AtProtocolService : IAtProtocolService
         return itemOk;
     }
 
+    /// <summary>
+    /// Refresh the access token using the stored refresh token.
+    /// Called automatically when the server returns ExpiredToken.
+    /// </summary>
+    private async Task<bool> TryRefreshTokenAsync(PluginConfiguration config)
+    {
+        if (string.IsNullOrEmpty(config.AtProtocolRefreshToken)) return false;
+
+        var url = $"https://{config.AtProtocolPdsHost}/xrpc/com.atproto.server.refreshSession";
+        try
+        {
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.AtProtocolRefreshToken);
+            var resp = await _httpClient.SendAsync(req);
+            if (!resp.IsSuccessStatusCode) return false;
+
+            var json = await JsonSerializer.DeserializeAsync<JsonElement>(await resp.Content.ReadAsStreamAsync());
+            var newAccess = json.TryGetProperty("accessJwt", out var access) ? access.GetString() : null;
+            var newRefresh = json.TryGetProperty("refreshJwt", out var refresh) ? refresh.GetString() : null;
+
+            if (string.IsNullOrEmpty(newAccess)) return false;
+
+            config.AtProtocolAccessToken = newAccess;
+            if (!string.IsNullOrEmpty(newRefresh))
+                config.AtProtocolRefreshToken = newRefresh;
+
+            Plugin.Instance!.UpdateConfiguration(config);
+            _logger.LogInformation("AT Protocol token refreshed successfully");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to refresh AT Protocol token");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Send a POST request, auto-refreshing the token on ExpiredToken.
+    /// </summary>
     private async Task<bool> PostRecordAsync(PluginConfiguration config, string collection, Dictionary<string, object> record)
     {
         var body = new { repo = config.AtProtocolDid, collection, record };
         var url = $"https://{config.AtProtocolPdsHost}/xrpc/com.atproto.repo.createRecord";
         var jsonContent = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
 
-        try
+        for (int attempt = 0; attempt < 2; attempt++)
         {
-            using var req = new HttpRequestMessage(HttpMethod.Post, url);
-            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.AtProtocolAccessToken);
-            req.Content = jsonContent;
-            var resp = await _httpClient.SendAsync(req);
-            var respBody = await resp.Content.ReadAsStringAsync();
+            try
+            {
+                using var req = new HttpRequestMessage(HttpMethod.Post, url);
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.AtProtocolAccessToken);
+                req.Content = jsonContent;
+                var resp = await _httpClient.SendAsync(req);
+                var respBody = await resp.Content.ReadAsStringAsync();
 
-            if (resp.IsSuccessStatusCode) return true;
-            _logger.LogError("Post to {Coll} failed. Status: {Code}, Body: {Body}", collection, resp.StatusCode, respBody);
+                if (resp.IsSuccessStatusCode) return true;
+
+                // Check for expired token and refresh
+                if (respBody.Contains("ExpiredToken") && attempt == 0)
+                {
+                    if (await TryRefreshTokenAsync(config))
+                        continue; // Retry with new token
+                }
+
+                _logger.LogError("Post to {Coll} failed. Status: {Code}, Body: {Body}", collection, resp.StatusCode, respBody);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                if (attempt == 0 && await TryRefreshTokenAsync(config))
+                    continue;
+                _logger.LogError(ex, "Error posting to {Coll}", collection);
+                return false;
+            }
         }
-        catch (Exception ex) { _logger.LogError(ex, "Error posting to {Coll}", collection); }
         return false;
     }
 
@@ -211,44 +268,62 @@ public class AtProtocolService : IAtProtocolService
     {
         if (string.IsNullOrEmpty(config.AtProtocolAccessToken)) return false;
 
-        // Check listItem collection (primary source of truth for diary entries)
         var url = $"https://{config.AtProtocolPdsHost}/xrpc/com.atproto.repo.listRecords" +
                   $"?repo={config.AtProtocolDid}&collection=social.popfeed.feed.listItem&limit=100";
 
-        try
+        for (int attempt = 0; attempt < 2; attempt++)
         {
-            using var req = new HttpRequestMessage(HttpMethod.Get, url);
-            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.AtProtocolAccessToken);
-            var resp = await _httpClient.SendAsync(req);
-            if (!resp.IsSuccessStatusCode) return false;
-
-            var json = await JsonSerializer.DeserializeAsync<JsonElement>(await resp.Content.ReadAsStreamAsync());
-            if (!json.TryGetProperty("records", out var records)) return false;
-
-            foreach (var record in records.EnumerateArray())
+            try
             {
-                if (!record.TryGetProperty("value", out var value)) continue;
-
-                if (!string.IsNullOrEmpty(tmdbId) &&
-                    value.TryGetProperty("identifiers", out var ids) &&
-                    ids.TryGetProperty("tmdbId", out var tid))
+                using var req = new HttpRequestMessage(HttpMethod.Get, url);
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.AtProtocolAccessToken);
+                var resp = await _httpClient.SendAsync(req);
+                if (!resp.IsSuccessStatusCode)
                 {
-                    if (string.Equals(tid.GetString(), tmdbId, StringComparison.OrdinalIgnoreCase))
+                    var body = await resp.Content.ReadAsStringAsync();
+                    if (body.Contains("ExpiredToken") && attempt == 0)
                     {
-                        _logger.LogInformation("Movie {Title} already in Watched Movies, skipping", movieTitle);
-                        return true;
+                        if (await TryRefreshTokenAsync(config))
+                            continue;
+                    }
+                    return false;
+                }
+
+                var json = await JsonSerializer.DeserializeAsync<JsonElement>(await resp.Content.ReadAsStreamAsync());
+                if (!json.TryGetProperty("records", out var records)) return false;
+
+                foreach (var record in records.EnumerateArray())
+                {
+                    if (!record.TryGetProperty("value", out var value)) continue;
+
+                    if (!string.IsNullOrEmpty(tmdbId) &&
+                        value.TryGetProperty("identifiers", out var ids) &&
+                        ids.TryGetProperty("tmdbId", out var tid))
+                    {
+                        if (string.Equals(tid.GetString(), tmdbId, StringComparison.OrdinalIgnoreCase))
+                        {
+                            _logger.LogInformation("Movie {Title} already in Watched Movies, skipping", movieTitle);
+                            return true;
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(tmdbId) &&
+                        value.TryGetProperty("title", out var tp))
+                    {
+                        if ((tp.GetString() ?? "").Contains(movieTitle, StringComparison.OrdinalIgnoreCase))
+                            return true;
                     }
                 }
-
-                if (string.IsNullOrEmpty(tmdbId) &&
-                    value.TryGetProperty("title", out var tp))
-                {
-                    if ((tp.GetString() ?? "").Contains(movieTitle, StringComparison.OrdinalIgnoreCase))
-                        return true;
-                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                if (attempt == 0 && await TryRefreshTokenAsync(config))
+                    continue;
+                _logger.LogError(ex, "Error checking if movie in Watched Movies list");
+                return false;
             }
         }
-        catch (Exception ex) { _logger.LogError(ex, "Error checking if movie in Watched Movies list"); }
         return false;
     }
 
