@@ -9,6 +9,14 @@
         "imageUrl": "https://raw.githubusercontent.com/didiermortier/jellyfin2popfeed-plugin/main/Jellyfin.Plugin.Jellyfin2PopFeed/thumb.png",
         "versions": [
             {
+                "version": "1.1.1.0",
+                "changelog": "Fixed ExpiredToken error. Plugin now auto-refreshes the AT Protocol access token using the stored refresh token when it expires (every 24h).",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.1.1/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
+                "checksum": "2b7b0bd880f00da4b51115c8ad4239db",
+                "timestamp": "2026-08-23T01:00:00Z"
+            },
+            {
                 "version": "1.1.0.0",
                 "changelog": "Final stable release. Creates listItem records for Popfeed Diary, Library, and Activity. Fetches director and poster from TMDB API. 90% threshold matches Jellyfin. Updated README with accurate info.",
                 "targetAbi": "10.11.0.0",

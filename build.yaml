@@ -1,7 +1,7 @@
 ---
 name: "Jellyfin2PopFeed"
 guid: "5f3e8a1c-2b7d-4e9f-a6c3-d1e4f8a2b9c5"
-version: "1.1.0.0"
+version: "1.1.1.0"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 owner: "didiermortier"
@@ -14,6 +14,5 @@ category: "General"
 artifacts:
   - "Jellyfin.Plugin.Jellyfin2PopFeed.dll"
 changelog: >
-  v1.1.0 - Final stable release. Creates listItem records (not review) for
-  Popfeed Diary, Library, and Activity. Fetches director and poster from
-  TMDB API. 90% playback threshold matches Jellyfin. Full version history.
+  v1.1.1 - Fixed ExpiredToken error. Plugin now auto-refreshes the AT Protocol
+  access token using the stored refresh token when it expires (every 24h).
