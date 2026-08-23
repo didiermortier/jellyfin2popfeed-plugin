@@ -229,7 +229,7 @@ public class AtProtocolService : IAtProtocolService
     {
         var body = new { repo = config.AtProtocolDid, collection, record };
         var url = $"https://{config.AtProtocolPdsHost}/xrpc/com.atproto.repo.createRecord";
-        var jsonContent = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
+        var bodyBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(body));
 
         for (int attempt = 0; attempt < 2; attempt++)
         {
@@ -237,7 +237,7 @@ public class AtProtocolService : IAtProtocolService
             {
                 using var req = new HttpRequestMessage(HttpMethod.Post, url);
                 req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.AtProtocolAccessToken);
-                req.Content = jsonContent;
+                req.Content = new StringContent(Encoding.UTF8.GetString(bodyBytes), Encoding.UTF8, "application/json");
                 var resp = await _httpClient.SendAsync(req);
                 var respBody = await resp.Content.ReadAsStringAsync();
 
