@@ -1,0 +1,21 @@
+[
+    {
+        "guid": "a182b41d-97ad-4b0e-a67b-1fe49f86909b",
+        "name": "Jellyfin2PopFeed (Beta)",
+        "description": "Beta channel for Jellyfin2PopFeed - test upcoming features without affecting your stable install. Same plugin, side-by-side with the stable version.",
+        "overview": "Beta: auto-log watched movies to Popfeed diary",
+        "owner": "didiermortier",
+        "category": "General",
+        "imageUrl": "https://raw.githubusercontent.com/didiermortier/jellyfin2popfeed-plugin/main/Jellyfin.Plugin.Jellyfin2PopFeed/thumb.png",
+        "versions": [
+            {
+                "version": "1.1.1.0",
+                "changelog": "Beta starting point. Matches stable v1.1.1. New features will be added here.",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.1.1/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
+                "checksum": "14b77386cca07c207a320cca7850a9d9",
+                "timestamp": "2026-08-23T01:00:00Z"
+            }
+        ]
+    }
+]
