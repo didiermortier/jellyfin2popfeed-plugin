@@ -4,6 +4,7 @@ const PopFeedConfig = {
             page.querySelector('#handle').value = result.handle || '';
             page.querySelector('#pdsHost').value = result.pdsHost || 'popfeed.social';
             page.querySelector('#autoPost').checked = result.autoPostMovies !== false;
+            page.querySelector('#autoPostTv').checked = result.autoPostTvShows !== false;
             // TMDB key: show placeholder if set, clear if not
             var tmdbInput = page.querySelector('#tmdbApiKey');
             tmdbInput.value = '';
@@ -25,6 +26,7 @@ const PopFeedConfig = {
         const pdsHost = page.querySelector('#pdsHost').value;
         const tmdbApiKey = page.querySelector('#tmdbApiKey').value;
         const autoPost = page.querySelector('#autoPost').checked;
+        const autoPostTv = page.querySelector('#autoPostTv').checked;
 
         if (!handle || !password) {
             PopFeedConfig.showMessage(page, 'Please enter a handle and password.', 'warning');
@@ -32,7 +34,7 @@ const PopFeedConfig = {
         }
 
         Dashboard.showLoadingMsg();
-        var data = { handle: handle, password: password, pdsHost: pdsHost, autoPostMovies: autoPost };
+        var data = { handle: handle, password: password, pdsHost: pdsHost, autoPostMovies: autoPost, autoPostTvShows: autoPostTv };
         if (tmdbApiKey) data.tmdbApiKey = tmdbApiKey;
 
         PopFeedConfig.apiPost('Authenticate', data).then(function (result) {

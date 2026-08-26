@@ -1,6 +1,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Movies;
+using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Session;
 using Microsoft.Extensions.Hosting;
@@ -9,8 +12,10 @@ using Microsoft.Extensions.Logging;
 namespace Jellyfin.Plugin.Jellyfin2PopFeed.Services;
 
 /// <summary>
-/// Monitors playback events and posts finished movies to PopFeed.
-/// Listens for PlaybackStop events at 90%+ completion.
+/// Monitors playback events and posts finished movies/series to PopFeed.
+/// Listens for PlaybackStart and PlaybackStop events.
+/// Movies: posts on 90%+ completion.
+/// TV: posts on start (new season/first watch) and finish (last episode of season).
 /// </summary>
 public class PlaybackMonitorService : IHostedService, IDisposable
 {
@@ -44,9 +49,25 @@ public class PlaybackMonitorService : IHostedService, IDisposable
         return Task.CompletedTask;
     }
 
-    private void OnPlaybackStart(object? sender, PlaybackProgressEventArgs e)
+    private async void OnPlaybackStart(object? sender, PlaybackProgressEventArgs e)
     {
-        // We only care about playback stop events
+        try
+        {
+            if (e.Item == null)
+                return;
+
+            // TV only: detect new season / new series start
+            if (e.Item is Episode)
+            {
+                _logger.LogDebug("TV playback started: {Name}", e.Item.Name);
+                await _popFeedService.OnTvPlaybackDetectedAsync(e.Item, isFinished: false);
+            }
+            // Movies: nothing special on start
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing playback start event");
+        }
     }
 
     private async void OnPlaybackStopped(object? sender, PlaybackStopEventArgs e)
@@ -56,7 +77,6 @@ public class PlaybackMonitorService : IHostedService, IDisposable
             if (e.Item == null)
                 return;
 
-            // Determine if the item was watched to completion (90%+, matching Jellyfin's MaxResumePct)
             var totalTicks = e.Item.RunTimeTicks ?? 0;
             if (totalTicks <= 0)
                 return;
@@ -64,13 +84,20 @@ public class PlaybackMonitorService : IHostedService, IDisposable
             var positionTicks = e.PlaybackPositionTicks ?? 0;
             var watchedPercent = (double)positionTicks / totalTicks * 100;
 
-            if (watchedPercent >= 90.0)
-            {
-                _logger.LogDebug(
-                    "Movie {Name} watched to {Percent:F1}%, posting to PopFeed",
-                    e.Item.Name, watchedPercent);
+            if (watchedPercent < 90.0)
+                return;
 
+            _logger.LogDebug(
+                "Playback stopped at {Percent:F1}% for {Name} ({Type})",
+                watchedPercent, e.Item.Name, e.Item.GetType().Name);
+
+            if (e.Item is Movie)
+            {
                 await _popFeedService.OnMovieFinishedAsync(e.Item);
+            }
+            else if (e.Item is Episode)
+            {
+                await _popFeedService.OnTvPlaybackDetectedAsync(e.Item, isFinished: true);
             }
         }
         catch (Exception ex)
