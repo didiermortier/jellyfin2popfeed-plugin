@@ -108,6 +108,9 @@ public class PopFeedService : IPopFeedService
         var episodeNumber = episode.IndexNumber ?? 0;
         var imdbId = episode.ProviderIds.TryGetValue("Imdb", out var imdb) ? imdb : null;
 
+        // Collect genres from the Series (Jellyfin Episodes inherit Series genres)
+        var genres = episode.Series?.Genres?.ToList() ?? episode.Genres?.ToList() ?? new List<string>();
+
         var currentlyWatchingListUri = config.CurrentlyWatchingTvShowsListUri;
         var watchedShowsListUri = config.WatchedTvShowsListUri;
 
@@ -121,10 +124,10 @@ public class PopFeedService : IPopFeedService
             showName, seasonNumber, episodeNumber, isFinished);
 
         if (isFinished)
-            await HandleEpisodeFinishedAsync(config, tmdbId, showName, imdbId,
+            await HandleEpisodeFinishedAsync(config, tmdbId, showName, imdbId, genres,
                 seasonNumber, episodeNumber, currentlyWatchingListUri, watchedShowsListUri);
         else
-            await HandleEpisodeStartedAsync(config, tmdbId, showName, imdbId,
+            await HandleEpisodeStartedAsync(config, tmdbId, showName, imdbId, genres,
                 currentlyWatchingListUri, watchedShowsListUri);
     }
 
@@ -133,6 +136,7 @@ public class PopFeedService : IPopFeedService
         string tmdbId,
         string showName,
         string? imdbId,
+        List<string> genres,
         string currentlyWatchingListUri,
         string watchedShowsListUri)
     {
@@ -151,7 +155,7 @@ public class PopFeedService : IPopFeedService
             await _atProtocolService.CreateTvShowListItemAsync(
                 config, currentlyWatchingListUri, "currently_watching_tv_shows",
                 showName, tmdbId, imdbId,
-                tmdb?.FirstAirDate, null,
+                tmdb?.FirstAirDate, genres,
                 tmdb?.MainCredit, tmdb?.MainCreditRole,
                 tmdb?.PosterUrl, tmdb?.BackdropUrl,
                 posterBlob);
@@ -177,7 +181,7 @@ public class PopFeedService : IPopFeedService
         await _atProtocolService.CreateTvShowListItemAsync(
             config, currentlyWatchingListUri, "currently_watching_tv_shows",
             showName, tmdbId, imdbId,
-            tmdbData?.FirstAirDate, null,
+            tmdbData?.FirstAirDate, genres,
             tmdbData?.MainCredit, tmdbData?.MainCreditRole,
             tmdbData?.PosterUrl, tmdbData?.BackdropUrl,
             posterBlobNew);
@@ -188,6 +192,7 @@ public class PopFeedService : IPopFeedService
         string tmdbId,
         string showName,
         string? imdbId,
+        List<string> genres,
         int seasonNumber,
         int episodeNumber,
         string currentlyWatchingListUri,
@@ -239,7 +244,7 @@ public class PopFeedService : IPopFeedService
         await _atProtocolService.CreateTvShowListItemAsync(
             config, watchedShowsListUri, "watched_tv_shows",
             showName, tmdbId, imdbId,
-            tmdb?.FirstAirDate, null,
+            tmdb?.FirstAirDate, genres,
             tmdb?.MainCredit, tmdb?.MainCreditRole,
             tmdb?.PosterUrl, tmdb?.BackdropUrl,
             posterBlob);

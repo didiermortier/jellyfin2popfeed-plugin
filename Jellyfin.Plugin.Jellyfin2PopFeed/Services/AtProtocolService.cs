@@ -303,7 +303,7 @@ public async Task<TmdbTvShowResult?> FetchTmdbTvShowAsync(string tmdbId, string 
         if (!string.IsNullOrEmpty(tmdbId)) identifiers["tmdbId"] = tmdbId;
         if (!string.IsNullOrEmpty(imdbId)) identifiers["imdbId"] = imdbId;
 
-        var now = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture);
+        var now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture);
 
         // Upload poster blob if we have a TMDB image URL
         Dictionary<string, object>? posterBlob = null;
@@ -492,7 +492,7 @@ public async Task<TmdbTvShowResult?> FetchTmdbTvShowAsync(string tmdbId, string 
         if (!string.IsNullOrEmpty(tmdbId)) identifiers["tmdbId"] = tmdbId;
         if (!string.IsNullOrEmpty(imdbId)) identifiers["imdbId"] = imdbId;
 
-        var now = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture);
+        var now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture);
 
         var item = new Dictionary<string, object>
         {
@@ -584,9 +584,16 @@ public async Task<TmdbTvShowResult?> FetchTmdbTvShowAsync(string tmdbId, string 
             var uploadJson = await JsonSerializer.DeserializeAsync<JsonElement>(await uploadResp.Content.ReadAsStreamAsync());
             _logger.LogInformation("Blob uploaded successfully");
 
-            // Convert the response to a Dictionary matching the AT Protocol blob format
-            var blobDict = JsonSerializer.Deserialize<Dictionary<string, object>>(uploadJson.GetRawText());
-            return new BlobResult { Blob = blobDict };
+            // API response is { "blob": { "$type": "blob", "ref": {...}, "mimeType": "...", "size": N } }
+            // PopFeed expects the INNER blob object directly as the 'poster' value
+            if (uploadJson.TryGetProperty("blob", out var blobElement))
+            {
+                var innerBlob = JsonSerializer.Deserialize<Dictionary<string, object>>(blobElement.GetRawText());
+                return new BlobResult { Blob = innerBlob };
+            }
+
+            _logger.LogWarning("Blob upload response did not contain 'blob' key");
+            return null;
         }
         catch (Exception ex)
         {
