@@ -76,7 +76,13 @@ public class PopFeedService : IPopFeedService
             posterUrl, backdropUrl, imdbId);
 
         if (success)
+        {
             _logger.LogInformation("Logged watch for {Title} ({Year}) to PopFeed Watched Movies", movieTitle, movieYear);
+
+            // Remove from Movie Watchlist if present
+            if (!string.IsNullOrEmpty(config.MovieWatchlistUri))
+                await RemoveFromWatchlistAsync(config, tmdbId, movieTitle, config.MovieWatchlistUri, "movie_watchlist");
+        }
         else
             _logger.LogError("Failed to log watch for {Title} ({Year})", movieTitle, movieYear);
     }
@@ -161,7 +167,13 @@ public class PopFeedService : IPopFeedService
                 posterBlob);
 
             if (created)
+            {
                 await _atProtocolService.DeleteListItemAsync(config, watchedRecordUri);
+
+                // Remove from Show Watchlist if present
+                if (!string.IsNullOrEmpty(config.TvShowWatchlistUri))
+                    await RemoveFromWatchlistAsync(config, tmdbId, showName, config.TvShowWatchlistUri, "tv_show_watchlist");
+            }
             else
                 _logger.LogError("Failed to create currently_watching entry for {Show}, watched record preserved", showName);
             return;
@@ -190,6 +202,10 @@ public class PopFeedService : IPopFeedService
             tmdbData?.MainCredit, tmdbData?.MainCreditRole,
             tmdbData?.PosterUrl, tmdbData?.BackdropUrl,
             posterBlobNew);
+
+        // Remove from Show Watchlist if present (first time, not from watched list)
+        if (!string.IsNullOrEmpty(config.TvShowWatchlistUri))
+            await RemoveFromWatchlistAsync(config, tmdbId, showName, config.TvShowWatchlistUri, "tv_show_watchlist");
     }
 
     private async Task HandleEpisodeFinishedAsync(
@@ -258,5 +274,33 @@ public class PopFeedService : IPopFeedService
             await _atProtocolService.DeleteListItemAsync(config, currentRecordUri);
         else
             _logger.LogError("Failed to create watched entry for {Show}, currently_watching record preserved", showName);
+    }
+
+    // ======================== WATCHLIST HELPERS ========================
+
+    private async Task RemoveFromWatchlistAsync(
+        PluginConfiguration config,
+        string tmdbId,
+        string itemName,
+        string watchlistUri,
+        string watchlistName)
+    {
+        try
+        {
+            var recordUri = await _atProtocolService.FindItemInListByTmdbIdAsync(config, tmdbId, watchlistUri);
+            if (!string.IsNullOrEmpty(recordUri))
+            {
+                await _atProtocolService.DeleteListItemAsync(config, recordUri);
+                _logger.LogInformation("Removed {Item} from {List} watchlist", itemName, watchlistName);
+            }
+            else
+            {
+                _logger.LogDebug("{Item} not in {List} watchlist, nothing to remove", itemName, watchlistName);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to remove {Item} from {List} watchlist (non-critical)", itemName, watchlistName);
+        }
     }
 }

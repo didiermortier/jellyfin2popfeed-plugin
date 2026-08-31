@@ -38,4 +38,16 @@ public class PluginConfiguration : BasePluginConfiguration
     /// Cached URI of the "Watched Shows" list on the user's PDS.
     /// </summary>
     public string WatchedTvShowsListUri { get; set; } = string.Empty;
+
+    // --- Watchlists ---
+
+    /// <summary>
+    /// Cached URI of the "Movie Watchlist" list (to-watch movies).
+    /// </summary>
+    public string MovieWatchlistUri { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Cached URI of the "Show Watchlist" list (to-watch shows).
+    /// </summary>
+    public string TvShowWatchlistUri { get; set; } = string.Empty;
 }

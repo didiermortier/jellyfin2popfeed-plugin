@@ -31,7 +31,9 @@ public class PopFeedController : ControllerBase
             hasTmdbKey = !string.IsNullOrEmpty(cfg.TmdbApiKey),
             hasWatchedList = !string.IsNullOrEmpty(cfg.WatchedMoviesListUri),
             hasTvLists = !string.IsNullOrEmpty(cfg.CurrentlyWatchingTvShowsListUri) &&
-                         !string.IsNullOrEmpty(cfg.WatchedTvShowsListUri)
+                         !string.IsNullOrEmpty(cfg.WatchedTvShowsListUri),
+            hasWatchlists = !string.IsNullOrEmpty(cfg.MovieWatchlistUri) &&
+                            !string.IsNullOrEmpty(cfg.TvShowWatchlistUri)
         });
     }
 
@@ -63,6 +65,8 @@ public class PopFeedController : ControllerBase
         {
             cfg.CurrentlyWatchingTvShowsListUri = tvLists.CurrentlyWatchingListUri ?? cfg.CurrentlyWatchingTvShowsListUri;
             cfg.WatchedTvShowsListUri = tvLists.WatchedShowsListUri ?? cfg.WatchedTvShowsListUri;
+            cfg.MovieWatchlistUri = tvLists.MovieWatchlistUri ?? cfg.MovieWatchlistUri;
+            cfg.TvShowWatchlistUri = tvLists.TvShowWatchlistUri ?? cfg.TvShowWatchlistUri;
         }
 
         Plugin.Instance!.UpdateConfiguration(cfg);
@@ -77,7 +81,9 @@ public class PopFeedController : ControllerBase
             hasTmdbKey = !string.IsNullOrEmpty(cfg.TmdbApiKey),
             hasWatchedList = !string.IsNullOrEmpty(cfg.WatchedMoviesListUri),
             hasTvLists = !string.IsNullOrEmpty(cfg.CurrentlyWatchingTvShowsListUri) &&
-                         !string.IsNullOrEmpty(cfg.WatchedTvShowsListUri)
+                         !string.IsNullOrEmpty(cfg.WatchedTvShowsListUri),
+            hasWatchlists = !string.IsNullOrEmpty(cfg.MovieWatchlistUri) &&
+                            !string.IsNullOrEmpty(cfg.TvShowWatchlistUri)
         });
     }
 
@@ -125,6 +131,8 @@ public class PopFeedController : ControllerBase
             {
                 cfg.CurrentlyWatchingTvShowsListUri = tvLists.CurrentlyWatchingListUri ?? cfg.CurrentlyWatchingTvShowsListUri;
                 cfg.WatchedTvShowsListUri = tvLists.WatchedShowsListUri ?? cfg.WatchedTvShowsListUri;
+                cfg.MovieWatchlistUri = tvLists.MovieWatchlistUri ?? cfg.MovieWatchlistUri;
+                cfg.TvShowWatchlistUri = tvLists.TvShowWatchlistUri ?? cfg.TvShowWatchlistUri;
             }
             Plugin.Instance!.UpdateConfiguration(cfg);
             return Ok(new { found = true, listUri, tvListsFound = tvLists != null });

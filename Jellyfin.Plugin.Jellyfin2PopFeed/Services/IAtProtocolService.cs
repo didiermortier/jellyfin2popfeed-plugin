@@ -22,6 +22,8 @@ public class TvShowListDiscoveryResult
 {
     public string? CurrentlyWatchingListUri { get; set; }
     public string? WatchedShowsListUri { get; set; }
+    public string? MovieWatchlistUri { get; set; }
+    public string? TvShowWatchlistUri { get; set; }
 }
 
 public class TmdbMovieResult
@@ -86,6 +88,7 @@ public interface IAtProtocolService
 
     // TV shows
     Task<string?> FindTvShowInListAsync(PluginConfiguration config, string tmdbId, string listUri);
+    Task<string?> FindItemInListByTmdbIdAsync(PluginConfiguration config, string tmdbId, string listUri);
     Task<bool> CreateTvShowListItemAsync(
         PluginConfiguration config,
         string listUri,

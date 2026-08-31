@@ -129,15 +129,24 @@ public class AtProtocolService : IAtProtocolService
                 var uri = record.TryGetProperty("uri", out var u) ? u.GetString() : null;
                 if (uri == null) continue;
 
-                if (type == "currently_watching_tv_shows")
+                switch (type)
                 {
-                    result.CurrentlyWatchingListUri = uri;
-                    _logger.LogInformation("Discovered Currently Watching Shows list: {Uri}", uri);
-                }
-                else if (type == "watched_tv_shows" || type == "watched_tv_shows")
-                {
-                    result.WatchedShowsListUri = uri;
-                    _logger.LogInformation("Discovered Watched Shows list: {Uri}", uri);
+                    case "currently_watching_tv_shows":
+                        result.CurrentlyWatchingListUri = uri;
+                        _logger.LogInformation("Discovered Currently Watching Shows list: {Uri}", uri);
+                        break;
+                    case "watched_tv_shows":
+                        result.WatchedShowsListUri = uri;
+                        _logger.LogInformation("Discovered Watched Shows list: {Uri}", uri);
+                        break;
+                    case "movie_watchlist":
+                        result.MovieWatchlistUri = uri;
+                        _logger.LogInformation("Discovered Movie Watchlist: {Uri}", uri);
+                        break;
+                    case "tv_show_watchlist":
+                        result.TvShowWatchlistUri = uri;
+                        _logger.LogInformation("Discovered Show Watchlist: {Uri}", uri);
+                        break;
                 }
             }
 
@@ -146,8 +155,11 @@ public class AtProtocolService : IAtProtocolService
         }
         catch (Exception ex) { _logger.LogError(ex, "Error discovering TV show lists"); }
 
-        _logger.LogWarning("Could not discover both TV show lists. Found: currentlyWatching={CW}, watched={W}",
-            result.CurrentlyWatchingListUri ?? "null", result.WatchedShowsListUri ?? "null");
+        _logger.LogWarning("Could not discover all TV-related lists. Found: currentlyWatching={CW}, watched={W}, movieWatchlist={MW}, tvWatchlist={TW}",
+            result.CurrentlyWatchingListUri ?? "null",
+            result.WatchedShowsListUri ?? "null",
+            result.MovieWatchlistUri ?? "null",
+            result.TvShowWatchlistUri ?? "null");
         return null;
     }
 
@@ -470,6 +482,12 @@ public async Task<TmdbTvShowResult?> FetchTmdbTvShowAsync(string tmdbId, string 
         }
         return null;
     }
+    public async Task<string?> FindItemInListByTmdbIdAsync(PluginConfiguration config, string tmdbId, string listUri)
+    {
+        // Reuses the same logic as FindTvShowInListAsync
+        return await FindTvShowInListAsync(config, tmdbId, listUri);
+    }
+
 
     public async Task<bool> CreateTvShowListItemAsync(
         PluginConfiguration config,
