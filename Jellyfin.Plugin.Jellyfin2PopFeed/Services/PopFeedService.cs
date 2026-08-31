@@ -151,14 +151,19 @@ public class PopFeedService : IPopFeedService
             if (tmdb?.PosterUrl != null)
                 posterBlob = (await _atProtocolService.UploadBlobAsync(config, tmdb.PosterUrl))?.Blob;
 
-            await _atProtocolService.DeleteListItemAsync(config, watchedRecordUri);
-            await _atProtocolService.CreateTvShowListItemAsync(
+            // Create in currently watching FIRST, then delete the old watched record
+            var created = await _atProtocolService.CreateTvShowListItemAsync(
                 config, currentlyWatchingListUri, "currently_watching_tv_shows",
                 showName, tmdbId, imdbId,
                 tmdb?.FirstAirDate, genres,
                 tmdb?.MainCredit, tmdb?.MainCreditRole,
                 tmdb?.PosterUrl, tmdb?.BackdropUrl,
                 posterBlob);
+
+            if (created)
+                await _atProtocolService.DeleteListItemAsync(config, watchedRecordUri);
+            else
+                _logger.LogError("Failed to create currently_watching entry for {Show}, watched record preserved", showName);
             return;
         }
 
@@ -240,13 +245,18 @@ public class PopFeedService : IPopFeedService
         if (tmdb?.PosterUrl != null)
             posterBlob = (await _atProtocolService.UploadBlobAsync(config, tmdb.PosterUrl))?.Blob;
 
-        await _atProtocolService.DeleteListItemAsync(config, currentRecordUri);
-        await _atProtocolService.CreateTvShowListItemAsync(
+        // Create in watched FIRST, then delete the old currently_watching record
+        var created = await _atProtocolService.CreateTvShowListItemAsync(
             config, watchedShowsListUri, "watched_tv_shows",
             showName, tmdbId, imdbId,
             tmdb?.FirstAirDate, genres,
             tmdb?.MainCredit, tmdb?.MainCreditRole,
             tmdb?.PosterUrl, tmdb?.BackdropUrl,
             posterBlob);
+
+        if (created)
+            await _atProtocolService.DeleteListItemAsync(config, currentRecordUri);
+        else
+            _logger.LogError("Failed to create watched entry for {Show}, currently_watching record preserved", showName);
     }
 }
