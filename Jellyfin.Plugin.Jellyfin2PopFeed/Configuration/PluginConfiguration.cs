@@ -7,19 +7,45 @@ namespace Jellyfin.Plugin.Jellyfin2PopFeed.Configuration;
 /// </summary>
 public class PluginConfiguration : BasePluginConfiguration
 {
-    // --- AT Protocol credentials ---
+    /// <summary>
+    /// AT Protocol handle (e.g., user.bsky.social).
+    /// </summary>
     public string AtProtocolHandle { get; set; } = string.Empty;
+
+    /// <summary>
+    /// AT Protocol app password.
+    /// </summary>
     public string AtProtocolPassword { get; set; } = string.Empty;
+
+    /// <summary>
+    /// AT Protocol PDS host (default: popfeed.social).
+    /// </summary>
     public string AtProtocolPdsHost { get; set; } = "popfeed.social";
+
+    /// <summary>
+    /// Account DID, populated after successful authentication.
+    /// </summary>
     public string AtProtocolDid { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Access JWT token.
+    /// </summary>
     public string AtProtocolAccessToken { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Refresh JWT token.
+    /// </summary>
     public string AtProtocolRefreshToken { get; set; } = string.Empty;
 
-    // --- TMDB ---
-    public string TmdbApiKey { get; set; } = string.Empty;
-
-    // --- Movie settings ---
+    /// <summary>
+    /// Whether to automatically post watched movies.
+    /// </summary>
     public bool AutoPostMovies { get; set; } = true;
+
+    /// <summary>
+    /// TMDB API key for fetching poster/backdrop URLs.
+    /// </summary>
+    public string TmdbApiKey { get; set; } = string.Empty;
 
     /// <summary>
     /// Cached URI of the "Watched Movies" list on the user's PDS, discovered at auth time.
@@ -40,14 +66,6 @@ public class PluginConfiguration : BasePluginConfiguration
     public string WatchedTvShowsListUri { get; set; } = string.Empty;
 
     // --- Watchlists ---
-
-    /// <summary>
-    /// Cached URI of the "Movie Watchlist" list (to-watch movies).
-    /// </summary>
     public string MovieWatchlistUri { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Cached URI of the "Show Watchlist" list (to-watch shows).
-    /// </summary>
     public string TvShowWatchlistUri { get; set; } = string.Empty;
 }

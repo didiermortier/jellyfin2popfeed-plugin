@@ -11,6 +11,7 @@ const PopFeedConfig = {
             tmdbInput.placeholder = result.hasTmdbKey ? 'API key saved (enter new to change)' : 'Enter TMDB API Key';
             if (result.connected) {
                 PopFeedConfig.showConnected(page, result.handle, result.pdsHost);
+                if (result.lists) PopFeedConfig.showLists(page, result.lists);
             } else {
                 PopFeedConfig.showDisconnected(page);
             }
@@ -38,8 +39,9 @@ const PopFeedConfig = {
         if (tmdbApiKey) data.tmdbApiKey = tmdbApiKey;
 
         PopFeedConfig.apiPost('Authenticate', data).then(function (result) {
-            PopFeedConfig.showMessage(page, 'Authenticated successfully! Movie list discovered and saved.', 'success');
+            PopFeedConfig.showMessage(page, 'Authenticated and all lists discovered!', 'success');
             PopFeedConfig.showConnected(page, result.handle, result.pdsHost);
+            if (result.lists) PopFeedConfig.showLists(page, result.lists);
             // Show TMDB key indicator
             var tmdbInput = page.querySelector('#tmdbApiKey');
             tmdbInput.value = '';
@@ -81,6 +83,24 @@ const PopFeedConfig = {
 
     showDisconnected: function (page) {
         page.querySelector('#connectedBadge').classList.add('hide');
+        page.querySelector('#listsPanel').classList.add('hide');
+    },
+
+    showLists: function (page, lists) {
+        var panel = page.querySelector('#listsPanel');
+        panel.classList.remove('hide');
+        var names = ['Watched Movies', 'Watching Shows', 'Watched Shows', 'Movie Watchlist', 'Show Watchlist'];
+        for (var i = 0; i < 5; i++) {
+            var div = page.querySelector('#listStatus' + i);
+            if (i < lists.length) {
+                var item = lists[i];
+                var icon = item.found ? '&#10003;' : '&#10007;';
+                var color = item.found ? '#2d6' : '#c44';
+                div.innerHTML = '<span style="color:' + color + ';font-weight:bold;">' + icon + '</span>'
+                                    + '<span>' + item.name + '</span>';
+                div.style.background = item.found ? 'rgba(0,200,80,0.08)' : 'rgba(200,0,50,0.08)';
+            }
+        }
     },
 
     showMessage: function (page, message, type) {

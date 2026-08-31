@@ -33,7 +33,16 @@ public class PopFeedController : ControllerBase
             hasTvLists = !string.IsNullOrEmpty(cfg.CurrentlyWatchingTvShowsListUri) &&
                          !string.IsNullOrEmpty(cfg.WatchedTvShowsListUri),
             hasWatchlists = !string.IsNullOrEmpty(cfg.MovieWatchlistUri) &&
-                            !string.IsNullOrEmpty(cfg.TvShowWatchlistUri)
+                            !string.IsNullOrEmpty(cfg.TvShowWatchlistUri),
+            // Return full list info for display in the dashboard
+            lists = new object[]
+            {
+                new { name = "Watched Movies", type = "watched_movies", found = !string.IsNullOrEmpty(cfg.WatchedMoviesListUri) },
+                new { name = "Currently Watching Shows", type = "currently_watching_tv_shows", found = !string.IsNullOrEmpty(cfg.CurrentlyWatchingTvShowsListUri) },
+                new { name = "Watched Shows", type = "watched_tv_shows", found = !string.IsNullOrEmpty(cfg.WatchedTvShowsListUri) },
+                new { name = "Movie Watchlist", type = "movie_watchlist", found = !string.IsNullOrEmpty(cfg.MovieWatchlistUri) },
+                new { name = "Show Watchlist", type = "tv_show_watchlist", found = !string.IsNullOrEmpty(cfg.TvShowWatchlistUri) }
+            }
         });
     }
 
@@ -57,7 +66,7 @@ public class PopFeedController : ControllerBase
         cfg.AutoPostTvShows = request.AutoPostTvShows;
         cfg.TmdbApiKey = request.TmdbApiKey ?? cfg.TmdbApiKey;
 
-        // Discover ALL lists (movies + TV)
+        // Discover all lists (movies + TV + watchlists)
         cfg.WatchedMoviesListUri = await _atProtocolService.DiscoverWatchedMoviesListAsync(cfg) ?? cfg.WatchedMoviesListUri;
 
         var tvLists = await _atProtocolService.DiscoverTvShowListsAsync(cfg);
@@ -83,7 +92,15 @@ public class PopFeedController : ControllerBase
             hasTvLists = !string.IsNullOrEmpty(cfg.CurrentlyWatchingTvShowsListUri) &&
                          !string.IsNullOrEmpty(cfg.WatchedTvShowsListUri),
             hasWatchlists = !string.IsNullOrEmpty(cfg.MovieWatchlistUri) &&
-                            !string.IsNullOrEmpty(cfg.TvShowWatchlistUri)
+                            !string.IsNullOrEmpty(cfg.TvShowWatchlistUri),
+            lists = new object[]
+            {
+                new { name = "Watched Movies", type = "watched_movies", found = !string.IsNullOrEmpty(cfg.WatchedMoviesListUri) },
+                new { name = "Currently Watching Shows", type = "currently_watching_tv_shows", found = !string.IsNullOrEmpty(cfg.CurrentlyWatchingTvShowsListUri) },
+                new { name = "Watched Shows", type = "watched_tv_shows", found = !string.IsNullOrEmpty(cfg.WatchedTvShowsListUri) },
+                new { name = "Movie Watchlist", type = "movie_watchlist", found = !string.IsNullOrEmpty(cfg.MovieWatchlistUri) },
+                new { name = "Show Watchlist", type = "tv_show_watchlist", found = !string.IsNullOrEmpty(cfg.TvShowWatchlistUri) }
+            }
         });
     }
 
@@ -114,7 +131,9 @@ public class PopFeedController : ControllerBase
             hasTmdbKey = !string.IsNullOrEmpty(cfg.TmdbApiKey),
             hasWatchedList = !string.IsNullOrEmpty(cfg.WatchedMoviesListUri),
             hasTvLists = !string.IsNullOrEmpty(cfg.CurrentlyWatchingTvShowsListUri) &&
-                         !string.IsNullOrEmpty(cfg.WatchedTvShowsListUri)
+                         !string.IsNullOrEmpty(cfg.WatchedTvShowsListUri),
+            hasWatchlists = !string.IsNullOrEmpty(cfg.MovieWatchlistUri) &&
+                            !string.IsNullOrEmpty(cfg.TvShowWatchlistUri)
         });
     }
 
