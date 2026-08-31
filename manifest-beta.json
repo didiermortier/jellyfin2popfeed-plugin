@@ -1,0 +1,37 @@
+[
+    {
+        "guid": "a182b41d-97ad-4b0e-a67b-1fe49f86909b",
+        "name": "Jellyfin2PopFeed (Beta)",
+        "description": "Beta channel for Jellyfin2PopFeed - test upcoming features without affecting your stable install. Same plugin, side-by-side with the stable version.",
+        "overview": "Beta: auto-log watched movies to Popfeed diary",
+        "owner": "didiermortier",
+        "category": "General",
+        "imageUrl": "https://raw.githubusercontent.com/didiermortier/jellyfin2popfeed-plugin/main/Jellyfin.Plugin.Jellyfin2PopFeed/thumb.png",
+        "versions": [
+            {
+                "version": "1.2.0.0",
+                "changelog": "Beta: TV series support. FIX: TMDb ID now read from Series, not Episode. Auto-add to Currently Watching, auto-move to Watched on season end. Poster blob upload. Config toggle for TV shows.",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.2.0-beta2/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
+                "checksum": "38a0b58a89a8e408948f08b32bab873d",
+                "timestamp": "2026-08-31T20:00:00Z"
+            },
+            {
+                "version": "1.2.0.0",
+                "changelog": "Beta: TV series support (first build). Auto-add to Currently Watching, auto-move to Watched on season end. Known issue: TMDb ID read from Episode instead of Series.",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.2.0-beta1/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
+                "checksum": "f662beb782259e2eca6528cdd3ee8293",
+                "timestamp": "2026-08-26T21:00:00Z"
+            },
+            {
+                "version": "1.1.1.0",
+                "changelog": "Beta starting point. Matches stable v1.1.1. New features will be added here.",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.1.1/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
+                "checksum": "14b77386cca07c207a320cca7850a9d9",
+                "timestamp": "2026-08-23T01:00:00Z"
+            }
+        ]
+    }
+]
