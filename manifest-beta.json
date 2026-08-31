@@ -9,8 +9,16 @@
         "imageUrl": "https://raw.githubusercontent.com/didiermortier/jellyfin2popfeed-plugin/main/Jellyfin.Plugin.Jellyfin2PopFeed/thumb.png",
         "versions": [
             {
+                "version": "1.2.0.1",
+                "changelog": "Fixed TMDb ID lookup: now reads from Series, not Episode. TV series currently_watching / watched lifecycle complete.",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.2.0-beta3/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
+                "checksum": "9697c95b23ff20dec22675a1b721fac5",
+                "timestamp": "2026-08-31T16:28:00Z"
+            },
+            {
                 "version": "1.2.0.0",
-                "changelog": "Beta: TV series support. FIX: TMDb ID now read from Series, not Episode. Auto-add to Currently Watching, auto-move to Watched on season end. Poster blob upload. Config toggle for TV shows.",
+                "changelog": "Beta: TV series support. Known issue: TMDb ID read from Episode instead of Series (fixed in 1.2.0.1).",
                 "targetAbi": "10.11.0.0",
                 "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.2.0-beta2/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
                 "checksum": "38a0b58a89a8e408948f08b32bab873d",
@@ -18,7 +26,7 @@
             },
             {
                 "version": "1.2.0.0",
-                "changelog": "Beta: TV series support (first build). Auto-add to Currently Watching, auto-move to Watched on season end. Known issue: TMDb ID read from Episode instead of Series.",
+                "changelog": "Beta: TV series support (first build). Known issue: TMDb ID read from Episode instead of Series.",
                 "targetAbi": "10.11.0.0",
                 "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.2.0-beta1/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
                 "checksum": "f662beb782259e2eca6528cdd3ee8293",
