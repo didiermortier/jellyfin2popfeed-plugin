@@ -96,10 +96,11 @@ public class PopFeedService : IPopFeedService
         }
 
         var showName = episode.SeriesName ?? episode.Series?.Name ?? "Unknown";
-        var tmdbId = episode.ProviderIds.TryGetValue("Tmdb", out var id) ? id : null;
+        // Read TMDb ID from the Series, not the Episode — episodes don't have one
+        var tmdbId = episode.Series?.ProviderIds.TryGetValue("Tmdb", out var seriesId) == true ? seriesId : null;
         if (string.IsNullOrEmpty(tmdbId))
         {
-            _logger.LogWarning("No TMDb ID for TV show {Series}, skipping", showName);
+            _logger.LogWarning("No TMDb ID for TV show {Series} (could not read from Series.ProviderIds), skipping", showName);
             return;
         }
 
