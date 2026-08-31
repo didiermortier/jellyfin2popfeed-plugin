@@ -9,12 +9,12 @@
         "imageUrl": "https://raw.githubusercontent.com/didiermortier/jellyfin2popfeed-plugin/main/Jellyfin.Plugin.Jellyfin2PopFeed/thumb.png",
         "versions": [
             {
-                "version": "1.2.0.2",
-                "changelog": "Fixed poster blob format (extract inner blob, not API wrapper). Fixed timestamp to match PopFeed format. Added TV show genres.",
+                "version": "1.2.0.5",
+                "changelog": "Persistent 'Discovered PopFeed Lists' panel in settings showing all 5 lists with checkmarks. Restored TV shows toggle in config page.",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.2.0-beta4/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
-                "checksum": "8db0cd07ed65ac6773604bdea3ac39e2",
-                "timestamp": "2026-08-31T17:00:00Z"
+                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.2.0-beta7/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
+                "checksum": "51db81b4f39a22fec152b3c93e652cf5",
+                "timestamp": "2026-08-31T21:30:00Z"
             },
             {
                 "version": "1.2.0.4",
@@ -31,6 +31,14 @@
                 "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.2.0-beta5/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
                 "checksum": "2f370cd093de6596f3d63cbc9c8e5880",
                 "timestamp": "2026-08-31T18:15:00Z"
+            },
+            {
+                "version": "1.2.0.2",
+                "changelog": "Fixed poster blob format (extract inner blob, not API wrapper). Fixed timestamp to match PopFeed format. Added TV show genres.",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.2.0-beta4/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
+                "checksum": "8db0cd07ed65ac6773604bdea3ac39e2",
+                "timestamp": "2026-08-31T17:00:00Z"
             },
             {
                 "version": "1.2.0.1",
