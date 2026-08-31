@@ -14,7 +14,7 @@
                 "targetAbi": "10.11.0.0",
                 "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.1.1/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
                 "checksum": "14b77386cca07c207a320cca7850a9d9",
-                "timestamp": "2026-08-23T01:00:00Z"
+                "timestamp": "2026-08-23T08:08:33Z"
             },
             {
                 "version": "1.1.0.0",
@@ -22,7 +22,7 @@
                 "targetAbi": "10.11.0.0",
                 "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.1.0/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
                 "checksum": "6b8048e2e6616091af64795cd76e87a0",
-                "timestamp": "2026-08-22T03:00:00Z"
+                "timestamp": "2026-08-22T00:18:35Z"
             },
             {
                 "version": "1.0.9.0",
@@ -30,7 +30,7 @@
                 "targetAbi": "10.11.0.0",
                 "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.9/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
                 "checksum": "688a760b77ebf4a8936cc962ec14b62a",
-                "timestamp": "2026-08-22T02:00:00Z"
+                "timestamp": "2026-08-21T23:41:07Z"
             },
             {
                 "version": "1.0.8.0",
@@ -38,7 +38,7 @@
                 "targetAbi": "10.11.0.0",
                 "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.8/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
                 "checksum": "ef2198362ee67a2e496e94a0339aeb5b",
-                "timestamp": "2026-08-22T01:00:00Z"
+                "timestamp": "2026-08-21T23:19:27Z"
             },
             {
                 "version": "1.0.7.0",
@@ -46,7 +46,7 @@
                 "targetAbi": "10.11.0.0",
                 "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.7/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
                 "checksum": "15a4af7f337c8972d505e2d22487a6a5",
-                "timestamp": "2026-08-21T23:30:00Z"
+                "timestamp": "2026-08-21T22:20:28Z"
             },
             {
                 "version": "1.0.6.0",
@@ -54,7 +54,7 @@
                 "targetAbi": "10.11.0.0",
                 "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.6/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
                 "checksum": "8985efefa966af80b829e4c86631e36d",
-                "timestamp": "2026-08-21T23:00:00Z"
+                "timestamp": "2026-08-21T21:22:36Z"
             },
             {
                 "version": "1.0.5.0",
@@ -62,7 +62,7 @@
                 "targetAbi": "10.11.0.0",
                 "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.5/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
                 "checksum": "59f4217341fe3307ca5f9bff3da2bef6",
-                "timestamp": "2026-08-21T22:00:00Z"
+                "timestamp": "2026-08-21T20:32:05Z"
             },
             {
                 "version": "1.0.4.0",
@@ -70,7 +70,7 @@
                 "targetAbi": "10.11.0.0",
                 "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.4/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
                 "checksum": "91cd574e86e6bbc1866a6bc7f1aa914a",
-                "timestamp": "2026-08-21T21:00:00Z"
+                "timestamp": "2026-08-21T20:15:42Z"
             },
             {
                 "version": "1.0.3.0",
@@ -78,7 +78,7 @@
                 "targetAbi": "10.11.0.0",
                 "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.3/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
                 "checksum": "ca974650fb480d58ebab8c723de17657",
-                "timestamp": "2026-08-21T20:00:00Z"
+                "timestamp": "2026-08-21T20:02:23Z"
             },
             {
                 "version": "1.0.2.0",
@@ -86,7 +86,7 @@
                 "targetAbi": "10.11.0.0",
                 "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.0.2/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
                 "checksum": "e66628fccbaafb8d9ee6cfd9052471f2",
-                "timestamp": "2026-08-21T18:30:00Z"
+                "timestamp": "2026-08-21T19:47:13Z"
             }
         ]
     }
