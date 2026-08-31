@@ -17,6 +17,14 @@
                 "timestamp": "2026-08-31T17:00:00Z"
             },
             {
+                "version": "1.2.0.3",
+                "changelog": "Safe create-then-delete pattern: create new listItem first, delete old only on success. Prevents data loss if create step fails.",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/didiermortier/jellyfin2popfeed-plugin/releases/download/v1.2.0-beta5/Jellyfin.Plugin.Jellyfin2PopFeed.zip",
+                "checksum": "2f370cd093de6596f3d63cbc9c8e5880",
+                "timestamp": "2026-08-31T18:15:00Z"
+            },
+            {
                 "version": "1.2.0.1",
                 "changelog": "Fixed TMDb ID lookup: now reads from Series, not Episode. TV series currently_watching / watched lifecycle complete.",
                 "targetAbi": "10.11.0.0",
