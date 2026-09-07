@@ -661,7 +661,7 @@ public async Task<TmdbTvShowResult?> FetchTmdbTvShowAsync(string tmdbId, string 
     {
         var body = new { repo = config.AtProtocolDid, collection, record };
         var url = $"https://{config.AtProtocolPdsHost}/xrpc/com.atproto.repo.createRecord";
-        var jsonContent = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
+        var bodyBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(body));
 
         for (int attempt = 0; attempt < 2; attempt++)
         {
@@ -669,6 +669,8 @@ public async Task<TmdbTvShowResult?> FetchTmdbTvShowAsync(string tmdbId, string 
             {
                 using var req = new HttpRequestMessage(HttpMethod.Post, url);
                 req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.AtProtocolAccessToken);
+                using var jsonContent = new StringContent(
+                    Encoding.UTF8.GetString(bodyBytes), Encoding.UTF8, "application/json");
                 req.Content = jsonContent;
                 var resp = await _httpClient.SendAsync(req);
                 var respBody = await resp.Content.ReadAsStringAsync();
