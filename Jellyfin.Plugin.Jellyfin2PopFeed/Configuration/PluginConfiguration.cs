@@ -51,4 +51,21 @@ public class PluginConfiguration : BasePluginConfiguration
     /// Cached URI of the "Watched Movies" list on the user's PDS, discovered at auth time.
     /// </summary>
     public string WatchedMoviesListUri { get; set; } = string.Empty;
+
+    // --- TV settings ---
+    public bool AutoPostTvShows { get; set; } = true;
+
+    /// <summary>
+    /// Cached URI of the "Currently Watching Shows" list on the user's PDS.
+    /// </summary>
+    public string CurrentlyWatchingTvShowsListUri { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Cached URI of the "Watched Shows" list on the user's PDS.
+    /// </summary>
+    public string WatchedTvShowsListUri { get; set; } = string.Empty;
+
+    // --- Watchlists ---
+    public string MovieWatchlistUri { get; set; } = string.Empty;
+    public string TvShowWatchlistUri { get; set; } = string.Empty;
 }
