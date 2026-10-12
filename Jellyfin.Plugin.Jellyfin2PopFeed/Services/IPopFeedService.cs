@@ -6,4 +6,5 @@ namespace Jellyfin.Plugin.Jellyfin2PopFeed.Services;
 public interface IPopFeedService
 {
     Task OnMovieFinishedAsync(BaseItem item);
+    Task OnTvPlaybackDetectedAsync(BaseItem item, bool isFinished);
 }

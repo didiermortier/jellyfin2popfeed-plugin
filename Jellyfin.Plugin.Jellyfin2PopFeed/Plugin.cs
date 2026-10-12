@@ -10,7 +10,7 @@ namespace Jellyfin.Plugin.Jellyfin2PopFeed;
 
 /// <summary>
 /// Main plugin class for Jellyfin2PopFeed integration.
-/// Posts watched movies to PopFeed via AT Protocol.
+/// Posts watched movies and TV shows to PopFeed via AT Protocol.
 /// </summary>
 public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
 {
@@ -26,7 +26,7 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
 
     public override Guid Id => Guid.Parse("5f3e8a1c-2b7d-4e9f-a6c3-d1e4f8a2b9c5");
 
-    public override string Description => "Automatically post watched movies to PopFeed via AT Protocol";
+    public override string Description => "Automatically post watched movies and TV shows to PopFeed via AT Protocol";
 
     public IEnumerable<PluginPageInfo> GetPages()
     {

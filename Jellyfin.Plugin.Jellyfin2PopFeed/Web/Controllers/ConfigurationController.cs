@@ -27,8 +27,22 @@ public class PopFeedController : ControllerBase
             handle = cfg.AtProtocolHandle ?? string.Empty,
             pdsHost = cfg.AtProtocolPdsHost ?? "popfeed.social",
             autoPostMovies = cfg.AutoPostMovies,
+            autoPostTvShows = cfg.AutoPostTvShows,
             hasTmdbKey = !string.IsNullOrEmpty(cfg.TmdbApiKey),
-            hasWatchedList = !string.IsNullOrEmpty(cfg.WatchedMoviesListUri)
+            hasWatchedList = !string.IsNullOrEmpty(cfg.WatchedMoviesListUri),
+            hasTvLists = !string.IsNullOrEmpty(cfg.CurrentlyWatchingTvShowsListUri) &&
+                         !string.IsNullOrEmpty(cfg.WatchedTvShowsListUri),
+            hasWatchlists = !string.IsNullOrEmpty(cfg.MovieWatchlistUri) &&
+                            !string.IsNullOrEmpty(cfg.TvShowWatchlistUri),
+            // Return full list info for display in the dashboard
+            lists = new object[]
+            {
+                new { name = "Watched Movies", type = "watched_movies", found = !string.IsNullOrEmpty(cfg.WatchedMoviesListUri) },
+                new { name = "Currently Watching Shows", type = "currently_watching_tv_shows", found = !string.IsNullOrEmpty(cfg.CurrentlyWatchingTvShowsListUri) },
+                new { name = "Watched Shows", type = "watched_tv_shows", found = !string.IsNullOrEmpty(cfg.WatchedTvShowsListUri) },
+                new { name = "Movie Watchlist", type = "movie_watchlist", found = !string.IsNullOrEmpty(cfg.MovieWatchlistUri) },
+                new { name = "Show Watchlist", type = "tv_show_watchlist", found = !string.IsNullOrEmpty(cfg.TvShowWatchlistUri) }
+            }
         });
     }
 
@@ -49,12 +63,20 @@ public class PopFeedController : ControllerBase
         cfg.AtProtocolPdsHost = request.PdsHost;
         cfg.AtProtocolPassword = request.Password;
         cfg.AutoPostMovies = request.AutoPostMovies;
+        cfg.AutoPostTvShows = request.AutoPostTvShows;
         cfg.TmdbApiKey = request.TmdbApiKey ?? cfg.TmdbApiKey;
 
-        // Discover "Watched Movies" list URI
-        var listUri = await _atProtocolService.DiscoverWatchedMoviesListAsync(cfg);
-        if (listUri != null)
-            cfg.WatchedMoviesListUri = listUri;
+        // Discover all lists (movies + TV + watchlists)
+        cfg.WatchedMoviesListUri = await _atProtocolService.DiscoverWatchedMoviesListAsync(cfg) ?? cfg.WatchedMoviesListUri;
+
+        var tvLists = await _atProtocolService.DiscoverTvShowListsAsync(cfg);
+        if (tvLists != null)
+        {
+            cfg.CurrentlyWatchingTvShowsListUri = tvLists.CurrentlyWatchingListUri ?? cfg.CurrentlyWatchingTvShowsListUri;
+            cfg.WatchedTvShowsListUri = tvLists.WatchedShowsListUri ?? cfg.WatchedTvShowsListUri;
+            cfg.MovieWatchlistUri = tvLists.MovieWatchlistUri ?? cfg.MovieWatchlistUri;
+            cfg.TvShowWatchlistUri = tvLists.TvShowWatchlistUri ?? cfg.TvShowWatchlistUri;
+        }
 
         Plugin.Instance!.UpdateConfiguration(cfg);
 
@@ -64,8 +86,21 @@ public class PopFeedController : ControllerBase
             handle = cfg.AtProtocolHandle,
             pdsHost = cfg.AtProtocolPdsHost,
             autoPostMovies = cfg.AutoPostMovies,
+            autoPostTvShows = cfg.AutoPostTvShows,
             hasTmdbKey = !string.IsNullOrEmpty(cfg.TmdbApiKey),
-            hasWatchedList = !string.IsNullOrEmpty(cfg.WatchedMoviesListUri)
+            hasWatchedList = !string.IsNullOrEmpty(cfg.WatchedMoviesListUri),
+            hasTvLists = !string.IsNullOrEmpty(cfg.CurrentlyWatchingTvShowsListUri) &&
+                         !string.IsNullOrEmpty(cfg.WatchedTvShowsListUri),
+            hasWatchlists = !string.IsNullOrEmpty(cfg.MovieWatchlistUri) &&
+                            !string.IsNullOrEmpty(cfg.TvShowWatchlistUri),
+            lists = new object[]
+            {
+                new { name = "Watched Movies", type = "watched_movies", found = !string.IsNullOrEmpty(cfg.WatchedMoviesListUri) },
+                new { name = "Currently Watching Shows", type = "currently_watching_tv_shows", found = !string.IsNullOrEmpty(cfg.CurrentlyWatchingTvShowsListUri) },
+                new { name = "Watched Shows", type = "watched_tv_shows", found = !string.IsNullOrEmpty(cfg.WatchedTvShowsListUri) },
+                new { name = "Movie Watchlist", type = "movie_watchlist", found = !string.IsNullOrEmpty(cfg.MovieWatchlistUri) },
+                new { name = "Show Watchlist", type = "tv_show_watchlist", found = !string.IsNullOrEmpty(cfg.TvShowWatchlistUri) }
+            }
         });
     }
 
@@ -92,8 +127,13 @@ public class PopFeedController : ControllerBase
             handle = cfg.AtProtocolHandle,
             pdsHost = cfg.AtProtocolPdsHost,
             autoPostMovies = cfg.AutoPostMovies,
+            autoPostTvShows = cfg.AutoPostTvShows,
             hasTmdbKey = !string.IsNullOrEmpty(cfg.TmdbApiKey),
-            hasWatchedList = !string.IsNullOrEmpty(cfg.WatchedMoviesListUri)
+            hasWatchedList = !string.IsNullOrEmpty(cfg.WatchedMoviesListUri),
+            hasTvLists = !string.IsNullOrEmpty(cfg.CurrentlyWatchingTvShowsListUri) &&
+                         !string.IsNullOrEmpty(cfg.WatchedTvShowsListUri),
+            hasWatchlists = !string.IsNullOrEmpty(cfg.MovieWatchlistUri) &&
+                            !string.IsNullOrEmpty(cfg.TvShowWatchlistUri)
         });
     }
 
@@ -105,8 +145,16 @@ public class PopFeedController : ControllerBase
         if (listUri != null)
         {
             cfg.WatchedMoviesListUri = listUri;
+            var tvLists = await _atProtocolService.DiscoverTvShowListsAsync(cfg);
+            if (tvLists != null)
+            {
+                cfg.CurrentlyWatchingTvShowsListUri = tvLists.CurrentlyWatchingListUri ?? cfg.CurrentlyWatchingTvShowsListUri;
+                cfg.WatchedTvShowsListUri = tvLists.WatchedShowsListUri ?? cfg.WatchedTvShowsListUri;
+                cfg.MovieWatchlistUri = tvLists.MovieWatchlistUri ?? cfg.MovieWatchlistUri;
+                cfg.TvShowWatchlistUri = tvLists.TvShowWatchlistUri ?? cfg.TvShowWatchlistUri;
+            }
             Plugin.Instance!.UpdateConfiguration(cfg);
-            return Ok(new { found = true, listUri });
+            return Ok(new { found = true, listUri, tvListsFound = tvLists != null });
         }
         return Ok(new { found = false });
     }
@@ -142,6 +190,7 @@ public class AuthRequest
     public string Password { get; set; } = string.Empty;
     public string PdsHost { get; set; } = "popfeed.social";
     public bool AutoPostMovies { get; set; } = true;
+    public bool AutoPostTvShows { get; set; } = true;
     public string? TmdbApiKey { get; set; }
 }
 

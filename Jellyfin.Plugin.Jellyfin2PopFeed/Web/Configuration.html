@@ -45,7 +45,15 @@
                         <input is="emby-checkbox" id="autoPost" type="checkbox" checked />
                         <span>Auto-log watched movies to PopFeed</span>
                     </label>
-                    <div class="fieldDescription">When you finish a movie (95%+), automatically add it to your PopFeed Watched Movies diary</div>
+                    <div class="fieldDescription">When you finish a movie (90%+), automatically add it to your PopFeed Watched Movies diary</div>
+                </div>
+
+                <div class="checkboxContainer checkboxContainer-withDescription">
+                    <label>
+                        <input is="emby-checkbox" id="autoPostTv" type="checkbox" checked />
+                        <span>Auto-log TV shows to PopFeed</span>
+                    </label>
+                    <div class="fieldDescription">When you start or finish a TV show season, automatically update your Currently Watching and Watched Shows lists</div>
                 </div>
 
                 <br />
@@ -56,6 +64,17 @@
                     <button is="emby-button" id="testConnectionBtn" type="button" class="raised">
                         <i class="fa fa-plug"></i> Test Connection
                     </button>
+                </div>
+
+                <div id="listsPanel" class="hide" style="margin-top: 1em; padding: 1em; background: #1a1a2e; border: 1px solid #446; border-radius: 4px;">
+                    <strong style="color: #ccd;">Discovered PopFeed Lists</strong>
+                    <div style="margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                        <div id="listStatus0" style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 3px;"></div>
+                        <div id="listStatus1" style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 3px;"></div>
+                        <div id="listStatus2" style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 3px;"></div>
+                        <div id="listStatus3" style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 3px;"></div>
+                        <div id="listStatus4" style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 3px;"></div>
+                    </div>
                 </div>
 
                 <div id="statusMessage" class="hide" style="margin-top: 1em;"></div>
