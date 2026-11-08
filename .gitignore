@@ -4,3 +4,4 @@ publish/
 *.zip
 *.nupkg
 packages.lock.json
+.DS_Store
