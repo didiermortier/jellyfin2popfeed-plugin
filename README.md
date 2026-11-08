@@ -86,13 +86,13 @@ Make sure you entered a valid TMDb API Key. The plugin fetches posters from TMDb
 
 ## How It Works
 
-1. A movie playback session ends in Jellyfin
-2. The plugin checks if the movie was watched to **90%+** completion (matches Jellyfin's own max-resume threshold)
-3. It looks up the movie's metadata (title, year, TMDb ID, genres)
-4. If a TMDb API key is set, it fetches poster URL, backdrop URL, IMDB ID, and director from TMDb
+1. A playback session ends in Jellyfin
+2. For a movie, the plugin checks it was watched to **90%+** completion (matches Jellyfin's own max-resume threshold). For a TV show, starting it adds it to Currently Watching; finishing the last episode of a season moves it to Watched Shows
+3. It looks up the item's metadata (title, year, TMDb ID, genres)
+4. If a TMDb API key is set, it fetches poster URL, backdrop URL, IMDB ID, and director or network from TMDb
 5. It queries your PDS for existing `social.popfeed.feed.listItem` records with the same TMDb ID
-6. If no match is found, it creates a `social.popfeed.feed.listItem` via `com.atproto.repo.createRecord`
-7. The movie appears in your PopFeed Diary and Watched Movies library.
+6. If no match is found, it creates a `social.popfeed.feed.listItem` via `com.atproto.repo.createRecord`; if the item was on a watchlist, that entry is removed
+7. The item appears in your PopFeed Diary and the matching library list.
 
 ## Building from Source
 
