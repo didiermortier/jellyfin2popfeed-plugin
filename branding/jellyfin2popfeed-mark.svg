@@ -1,0 +1,30 @@
+<svg width="1024" height="1024" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="jfGrad" x1="0" y1="0" x2="300" y2="300" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#AA5CC3"/><stop offset="1" stop-color="#00A4DC"/></linearGradient>
+    <clipPath id="blobClip"><path d="M150,10 C218,8 280,48 290,118 C298,178 292,252 218,284 C150,314 60,298 22,232 C-12,170 -2,84 52,42 C84,16 116,12 150,10 Z"/></clipPath>
+    <clipPath id="upperLeft"><polygon points="0,0 300,0 0,300"/></clipPath>
+    <clipPath id="lowerRight"><polygon points="300,0 300,300 0,300"/></clipPath>
+  </defs>
+  <g clip-path="url(#blobClip)">
+    <polygon points="0,0 300,0 0,300" fill="url(#jfGrad)"/>
+    <polygon points="300,0 300,300 0,300" fill="#533EE5"/>
+    <g clip-path="url(#upperLeft)">
+      <g transform="translate(-8,2) scale(0.62)"><path d="M256,23.3c-61.6,0-259.8,359.4-229.6,420.1s429.3,60,459.2,0S317.6,23.3,256,23.3z" fill="#ffffff"/></g>
+    </g>
+    <g clip-path="url(#lowerRight)">
+      <g transform="translate(-10.0,-13.100000000000001) scale(0.75) translate(0.000000,512.000000) scale(0.100000,-0.100000)"><path d="M2465 3969 c-287 -39 -548 -162 -726 -340 -164 -164 -276 -372 -332
+-614 -20 -87 -21 -122 -24 -987 -3 -648 -1 -909 7 -939 22 -81 102 -127 171
+-99 18 8 134 128 297 309 354 392 323 361 369 361 21 -1 65 -7 98 -15 88 -22
+292 -30 418 -16 287 31 519 138 716 330 228 222 343 479 358 796 12 267 -45
+457 -211 705 -162 242 -464 437 -767 495 -105 20 -285 27 -374 14z m161 -557
+c6 -4 52 -89 102 -189 56 -112 98 -184 109 -187 10 -3 101 -17 203 -32 102
+-14 191 -31 198 -36 30 -25 10 -55 -135 -200 l-148 -148 34 -204 c37 -218 36
+-236 -11 -236 -11 0 -97 41 -191 90 -94 50 -178 90 -185 90 -8 0 -91 -40 -184
+-90 -94 -49 -181 -90 -194 -90 -45 0 -46 24 -9 236 19 110 35 201 35 204 0 3
+-68 70 -152 151 -136 130 -150 148 -145 171 4 14 14 28 22 31 8 4 100 18 204
+33 105 15 194 30 199 33 5 3 49 85 97 181 48 96 92 181 97 188 12 13 37 16 54
+4z" fill="#ffffff"/></g>
+    </g>
+    <text x="150" y="195" font-family="Arial, Helvetica, sans-serif" font-size="170" font-weight="800" fill="#0C0E1D" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="5">2</text>
+  </g>
+</svg>
